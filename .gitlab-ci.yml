@@ -1,49 +1,59 @@
-image: docker:18.09.7
+stages:
+  - sonarqube
+  - build
+  - release_helm
+#  - deploy_k8s_test
+  - clean
 
-services:
-  - docker:18.09.7-dind
+include:
+  # initialize 
+  - project: "ehr/dev-ops/gitlab-cis"
+    file: ".gitlab-ci-docker-init.yml"
+
+  # Sonarqube test
+  - project: "ehr/dev-ops/gitlab-cis"
+    file: ".gitlab-ci-test-sonarqube.yml"
 
 variables:
-  DEV_PROXY_IMAGE: $CI_REGISTRY/proxy:$CI_COMMIT_REF_NAME
-  DEV_REDIS_SENTINEL_IMAGE: $CI_REGISTRY/redis:$CI_COMMIT_REF_NAME
-  DOCKER_DRIVER: overlay
-  DOCKER_HOST: tcp://localhost:2375
+  DEV_PROXY_IMAGE: $CI_REGISTRY_IMAGE/proxy:$CI_COMMIT_REF_NAME
+  DEV_REDIS_SENTINEL_IMAGE: $CI_REGISTRY_IMAGE/redis:$CI_COMMIT_REF_NAME
 
-stages:
-  - build_proxy_image
-  - build_redis_image
-  - deploy_redis_proxy_image
-
-build_proxy:
-  stage: build_proxy_image
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_USER_PASSWORD $CI_REGISTRY
+build:
+  stage: build
+  only:
+    - /^version-.*$/
   script:
-    - cd ./proxy
-    - docker pull $DEV_PROXY_IMAGE
-  #  - docker build -t $DEV_PROXY_IMAGE .
-  #  - docker push $DEV_PROXY_IMAGE
+    - echo Building version $GIT_SEMVER
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $CI_REGISTRY_IMAGE:latest_proxy || true
+    - docker pull $CI_REGISTRY_IMAGE:latest_redis || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest_proxy --build-arg GIT_SEMVER=${GIT_SEMVER} --tag $DEV_PROXY_IMAGE --tag $CI_REGISTRY_IMAGE:latest_proxy ./proxy
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest_redis --build-arg GIT_SEMVER=${GIT_SEMVER} --tag $DEV_REDIS_SENTINEL_IMAGE --tag $CI_REGISTRY_IMAGE:latest_redis ./redis
+    - docker push $DEV_PROXY_IMAGE
+    - docker push $CI_REGISTRY_IMAGE:latest_proxy
+    - docker push $DEV_REDIS_SENTINEL_IMAGE
+    - docker push $CI_REGISTRY_IMAGE:latest_redis
 
-build_redis:
-  stage: build_redis_image
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_USER_PASSWORD $CI_REGISTRY
+helm:
+  stage: release_helm
+  image:
+    name: dtzar/helm-kubectl:3.0.1
+  only:
+    - /^version-.*$/
   script:
-    - cd ./redis
-    - docker pull $DEV_REDIS_SENTINEL_IMAGE
-  #  - docker build -t $DEV_REDIS_SENTINEL_IMAGE .
-  #  - docker push $DEV_REDIS_SENTINEL_IMAGE
-
-deploy_redis:
-    stage: deploy_redis_proxy_image
-    image:
-      name: dtzar/helm-kubectl
-      entrypoint: ["/bin/sh", "-c"]
-    script:
-      - cd ./redis-sentinel-proxy-charm
-      - sed -i "s~__CI_REGISTRY_REDIS_IMAGE__~${DEV_REDIS_SENTINEL_IMAGE}~" values.yaml
-      - sed -i "s~__CI_REGISTRY_PROXY_IMAGE__~${DEV_PROXY_IMAGE}~" values.yaml
-      - helm template .
-      - helm delete redis-sentinel-proxy
-      #- helm upgrade redis-sentinel-proxy .
-      - helm install redis-sentinel-proxy .
+    # Extract version (numbers only) from commit tag
+    - SEMVER=`echo $CI_COMMIT_REF_NAME | sed 's/.*-\(.*\)/\1/'`
+    # Set install image in values file
+    - sed -i "s~__CI_REGISTRY_REDIS_IMAGE__~${DEV_REDIS_SENTINEL_IMAGE}~" redis-sentinel-proxy-charm/values.yaml
+    - sed -i "s~__CI_REGISTRY_PROXY_IMAGE__~${DEV_PROXY_IMAGE}~" redis-sentinel-proxy-charm/values.yaml
+    - sed -i "s~__APPVERSION__~${CI_COMMIT_REF_NAME}~" redis-sentinel-proxy-charm/Chart.yaml
+    # Debugging aid to show how variables got replaced...
+    - echo "---------------------------------"
+    - cat redis-sentinel-proxy-charm/Chart.yaml
+    - echo "---------------------------------"
+    - cat redis-sentinel-proxy-charm/values.yaml
+    - echo "---------------------------------"
+    # Build chart and upload to our ChartMuseum
+    - helm plugin install https://github.com/chartmuseum/helm-push
+    - helm repo add chartmuseum $CHM_URL --username $CHM_USER --password $CHM_PASS
+    - helm push ./redis-sentinel-proxy-charm --version=$SEMVER chartmuseum
