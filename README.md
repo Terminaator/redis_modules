@@ -32,6 +32,7 @@
 * redis-sentinel-proxy-charm - CONTAINS HELM CHART STUFFS
 
 **kubernetes namespace:**
+
 kubectl create namespace <namespace> 
 
 **kubernetes rights:**
