@@ -5,12 +5,14 @@ services:
 
 variables:
   DEV_PROXY_IMAGE: $CI_REGISTRY/proxy:$CI_COMMIT_REF_NAME
+  DEV_REDIS_SENTINEL_IMAGE: $CI_REGISTRY/redis:$CI_COMMIT_REF_NAME
   DOCKER_DRIVER: overlay
   DOCKER_HOST: tcp://localhost:2375
 
 
 stages:
-  - build_proxy_image
+  #- build_proxy_image
+  - build_redis_image
 
 build_proxy:
   stage: build_proxy_image
@@ -20,3 +22,12 @@ build_proxy:
     - cd ./proxy
     - docker build -t $DEV_PROXY_IMAGE .
     - docker push $DEV_PROXY_IMAGE
+
+build_redis:
+  stage: build_redis_image
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_USER_PASSWORD $CI_REGISTRY
+  script:
+    - cd ./redis
+    - docker build -t $DEV_REDIS_SENTINEL_IMAGE .
+    - docker push $DEV_REDIS_SENTINEL_IMAGE
