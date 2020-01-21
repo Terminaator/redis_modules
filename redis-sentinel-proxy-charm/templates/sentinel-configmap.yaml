@@ -16,5 +16,5 @@ data:
     port 26379
     sentinel monitor redis redis 6379 2
     sentinel parallel-syncs redis 1
-    sentinel down-after-milliseconds redis 1000
-    sentinel failover-timeout redis 2000
+    sentinel down-after-milliseconds redis 5000
+    sentinel failover-timeout redis 60000

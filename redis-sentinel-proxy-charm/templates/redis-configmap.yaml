@@ -39,4 +39,13 @@ data:
     replica-serve-stale-data yes
   redis_sh: |
     #!/bin/bash
-    redis-server /redis-data/slave.conf
+    if [[ ${HOSTNAME} == 'redis-0' ]] && [ ! ping -c 1 redis ]
+    then
+        redis-server /redis-data/master.conf
+    else
+        while ! ping -c 1 redis; do
+          echo 'Waiting for master'
+          sleep 1
+        done
+        redis-server /redis-data/slave.conf
+    fi
