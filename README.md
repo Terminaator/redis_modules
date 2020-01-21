@@ -1,3 +1,9 @@
+**Project structure**
+*proxy
+*redis
+*redis-sentinel-proxy-charm
+
+
 
 
 **kubernetes rights:**
