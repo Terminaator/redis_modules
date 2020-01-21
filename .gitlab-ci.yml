@@ -1,0 +1,34 @@
+stages:
+  - sonarqube
+  - build
+  - release_helm
+#  - clean
+
+include:
+  # initialize 
+  - project: "ehr/dev-ops/gitlab-cis"
+    file: ".gitlab-ci-docker-init.yml"
+
+  # Sonarqube test
+  - project: "ehr/dev-ops/gitlab-cis"
+    file: ".gitlab-ci-test-sonarqube.yml"
+
+variables:
+  PROXY_RELEASE_IMAGE: $CI_REGISTRY_IMAGE/proxy:$CI_COMMIT_REF_NAME
+  DEV_REDIS_SENTINEL_IMAGE: $CI_REGISTRY/redis:$CI_COMMIT_REF_NAME
+
+build:
+  stage: build
+#  only:
+#    - /^version-.*$/
+  script:
+    - echo Building version $GIT_SEMVER
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $CI_REGISTRY_IMAGE:latest_proxy || true
+    - docker pull $CI_REGISTRY_IMAGE:latest_redis || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest_proxy --build-arg GIT_SEMVER=${GIT_SEMVER} --tag $PROXY_RELEASE_IMAGE --tag $CI_REGISTRY_IMAGE:latest_proxy ./proxy
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest_redis --build-arg GIT_SEMVER=${GIT_SEMVER} --tag $PROXY_RELEASE_IMAGE --tag $CI_REGISTRY_IMAGE:latest_redis ./redis
+    - docker push $PROXY_RELEASE_IMAGE
+    - docker push $CI_REGISTRY_IMAGE:latest_proxy
+    - docker push $PROXY_RELEASE_IMAGE
+    - docker push $CI_REGISTRY_IMAGE:latest_redis
