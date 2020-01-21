@@ -1,5 +1,7 @@
 namespace: redis-sentinel-proxy
 
+imagePullSecrets: registry-gitlab-key
+
 sentinel:
   name: sentinel
   replicas: 3
