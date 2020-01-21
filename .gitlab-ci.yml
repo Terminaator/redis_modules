@@ -21,6 +21,7 @@ build_proxy:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_USER_PASSWORD $CI_REGISTRY
   script:
     - cd ./proxy
+    - docker pull $DEV_PROXY_IMAGE
   #  - docker build -t $DEV_PROXY_IMAGE .
   #  - docker push $DEV_PROXY_IMAGE
 
@@ -30,6 +31,7 @@ build_redis:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_USER_PASSWORD $CI_REGISTRY
   script:
     - cd ./redis
+    - docker pull $DEV_REDIS_SENTINEL_IMAGE
     #- docker build -t $DEV_REDIS_SENTINEL_IMAGE .
     #- docker push $DEV_REDIS_SENTINEL_IMAGE
 
@@ -38,8 +40,6 @@ deploy_redis:
     image:
       name: dtzar/helm-kubectl
       entrypoint: ["/bin/sh", "-c"]
-    before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_USER_PASSWORD $CI_REGISTRY
     script:
       - cd ./redis-sentinel-proxy-charm
       - sed -i "s~__CI_REGISTRY_REDIS_IMAGE__~${DEV_REDIS_SENTINEL_IMAGE}~" values.yaml
