@@ -6,18 +6,7 @@ metadata:
 data:
     init_json: |
         {
-            "sentinel": {
-                "service":"sentinel",
-                "port":"26379"
-            },
-            "redis": {
-                "name": "redis",
-                "password": "redis"
-            },
             "clients": [
-                "http://localhost:8080/ehr/app/api/all1",
-                "http://localhost:8080/ehr/app/api/all2",
-                "http://localhost:8080/ehr/app/api/all3",
-                "http://localhost:8080/ehr/app/api/all"
+                "https://192.168.21.15/app/api/all"
             ]
         }
