@@ -13,7 +13,7 @@ variables:
 stages:
   - build_proxy_image
   - build_redis_image
-  - deploy_redis_image
+  - deploy_redis_proxy_image
 
 build_proxy:
   stage: build_proxy_image
@@ -36,12 +36,13 @@ build_redis:
     #- docker push $DEV_REDIS_SENTINEL_IMAGE
 
 deploy_redis:
-    stage: deploy_redis_image
+    stage: deploy_redis_proxy_image
     image:
       name: dtzar/helm-kubectl
       entrypoint: ["/bin/sh", "-c"]
     script:
       - cd ./redis-sentinel-proxy-charm
       - sed -i "s~__CI_REGISTRY_REDIS_IMAGE__~${DEV_REDIS_SENTINEL_IMAGE}~" values.yaml
+      - sed -i "s~__CI_REGISTRY_PROXY_IMAGE__~${DEV_PROXY_IMAGE}~" values.yaml
       - helm template .
-      #- docker pull $DEV_REDIS_SENTINEL_IMAGE
+      - helm upgrade redis-sentinel-proxy .
