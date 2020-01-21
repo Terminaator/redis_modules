@@ -26,11 +26,11 @@ spec:
               mountPath: ./app/conf
           env:
           - name: service
-            value: {{ .Values.values.redisName }}
+            value: "{{ .Values.values.redisName }}"
           - name: port
-            value: {{ .Values.values.sentinelPort }}
+            value: "{{ .Values.values.sentinelPort }}"
           - name: name
-            value: {{ .Values.values.redisName }}
+            value: "{{ .Values.values.redisName }}"
           readinessProbe:
             httpGet:
               path: /ready
