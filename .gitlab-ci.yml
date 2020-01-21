@@ -20,9 +20,9 @@ build_proxy:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_USER_PASSWORD $CI_REGISTRY
   script:
     - cd ./proxy
-  #  - docker pull $DEV_PROXY_IMAGE
-    - docker build -t $DEV_PROXY_IMAGE .
-    - docker push $DEV_PROXY_IMAGE
+    - docker pull $DEV_PROXY_IMAGE
+  #  - docker build -t $DEV_PROXY_IMAGE .
+  #  - docker push $DEV_PROXY_IMAGE
 
 build_redis:
   stage: build_redis_image
@@ -30,9 +30,9 @@ build_redis:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_USER_PASSWORD $CI_REGISTRY
   script:
     - cd ./redis
-  #  - docker pull $DEV_REDIS_SENTINEL_IMAGE
-    - docker build -t $DEV_REDIS_SENTINEL_IMAGE .
-    - docker push $DEV_REDIS_SENTINEL_IMAGE
+    - docker pull $DEV_REDIS_SENTINEL_IMAGE
+  #  - docker build -t $DEV_REDIS_SENTINEL_IMAGE .
+  #  - docker push $DEV_REDIS_SENTINEL_IMAGE
 
 deploy_redis:
     stage: deploy_redis_proxy_image
