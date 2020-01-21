@@ -1,3 +1,20 @@
+**Requirements**
+* Running only proxy without redis, sentinel
+    * Golang packages (go get -u REPO)
+        * github.com/sparrc/go-ping
+        * github.com/mediocregopher/radix
+    * Running proxy
+        * go build -o main.exe .
+        * and running main.exe
+* Running redis modules
+    * Redis server
+        * Build modules with makefile
+        * Import builded modules into redis conf 
+* Running in kubernetes local
+    * Build images
+    * Run redis-sentinel-proxy-charm
+    * Example in run.bat file
+
 **Project structure**
 * proxy - TCP proxy handles sentinel, redis and client connections (written in Golang)
     * main.go - starts proxy
@@ -13,10 +30,6 @@
     * YEAR_MODULE - CHECKS IF YEAR MATCHES ELSE RESETS ALL VALUES IN DOCUMENT_MODULE TO 0
     * DOCUMENT_MODULE - CHECKS IF DOCUMENT EXCIST AND INCREASES COUNT (VALID VALUES (YEAR TWO LAST DIGITS)+DOTY + / + COUNT -> EXAMPLE 201111/00001)
 * redis-sentinel-proxy-charm - CONTAINS HELM CHART STUFFS
-
-
-
-
 
 **kubernetes rights:**
 ```
