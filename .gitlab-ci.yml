@@ -17,5 +17,6 @@ build_proxy:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_USER_PASSWORD $CI_REGISTRY
   script:
+    - cd ./proxy
     - docker build -t $DEV_PROXY_IMAGE .
     - docker push $DEV_PROXY_IMAGE
