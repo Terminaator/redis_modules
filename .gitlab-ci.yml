@@ -35,6 +35,9 @@ build_redis:
 
 deploy_redis:
     stage: deploy_redis_image
+    image:
+      name: dtzar/helm-kubectl
+      entrypoint: ["/bin/sh", "-c"]
     before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_USER_PASSWORD $CI_REGISTRY
     script:
