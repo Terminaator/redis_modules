@@ -17,6 +17,7 @@ var (
 	localAddr string = ":9999"
 
 	REDIS_STRING_END string = "\r\n"
+
 )
 
 func main() {

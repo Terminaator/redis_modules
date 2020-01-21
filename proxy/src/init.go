@@ -42,6 +42,15 @@ func readFile() {
 }
 
 func initProxy() {
+	sentinelAddr := flag.String("service", "sentinel", "SERVICE ADDR")
+	sentinelPort := flag.String("port", "26379", "SERVICE PORT")
+	redisName := flag.String("name", "redis", "redis master name")
+
 	flag.Parse()
 	readFile()
+
+	proxy.Sentinel = Sentinel{*sentinelAddr, *sentinelPort}
+	proxy.Redis = Redis{*redisName}
+
+	log.Println(proxy)
 }
