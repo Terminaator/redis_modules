@@ -44,6 +44,8 @@ spec:
           name: config-files
         - mountPath: /redis-data
           name: data
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecrets }}
       volumes:
         - name: data
           emptyDir: {}
