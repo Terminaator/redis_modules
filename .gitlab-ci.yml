@@ -13,6 +13,7 @@ variables:
 stages:
   - build_proxy_image
   - build_redis_image
+  - deploy_redis_image
 
 build_proxy:
   stage: build_proxy_image
