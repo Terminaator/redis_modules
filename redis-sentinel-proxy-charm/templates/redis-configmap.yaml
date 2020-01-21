@@ -41,7 +41,7 @@ data:
     #!/bin/bash
     while true;
     do
-        ping -c redis
+        ping -c 1 redis
         if [ $? -eq 0 ]
         then
             redis-server /redis-data/slave.conf
