@@ -31,6 +31,9 @@
     * DOCUMENT_MODULE - CHECKS IF DOCUMENT EXCIST AND INCREASES COUNT (VALID VALUES (YEAR TWO LAST DIGITS)+DOTY + / + COUNT -> EXAMPLE 201111/00001)
 * redis-sentinel-proxy-charm - CONTAINS HELM CHART STUFFS
 
+**kubernetes namespace:**
+kubectl create namespace <namespace> 
+
 **kubernetes rights:**
 ```
 cat <<EOF | kubectl apply -f -
