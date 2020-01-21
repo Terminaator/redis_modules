@@ -1,7 +1,7 @@
 **Project structure**
 * proxy - TCP proxy handles sentinel, redis and client connections (written in Golang)
 * redis - contains Redis modules
-** e
+* * e
 * redis-sentinel-proxy-charm
 
 
