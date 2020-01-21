@@ -33,7 +33,7 @@
 
 **kubernetes namespace:**
 
-kubectl create namespace <namespace> 
+kubectl create namespace "namespace" 
 
 **kubernetes rights:**
 ```
