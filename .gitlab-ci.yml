@@ -44,6 +44,6 @@ deploy_redis:
       - sed -i "s~__CI_REGISTRY_REDIS_IMAGE__~${DEV_REDIS_SENTINEL_IMAGE}~" values.yaml
       - sed -i "s~__CI_REGISTRY_PROXY_IMAGE__~${DEV_PROXY_IMAGE}~" values.yaml
       - helm template .
-      #- helm delete redis-sentinel-proxy
+      - helm delete redis-sentinel-proxy
       #- helm upgrade redis-sentinel-proxy .
       - helm install redis-sentinel-proxy .

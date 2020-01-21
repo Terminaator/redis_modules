@@ -7,5 +7,6 @@ data:
     init_json: |
         {
             "clients": [
+                "https://192.168.21.15/app/api/all"
             ]
         }
