@@ -3,6 +3,12 @@ image: docker:18.09.7
 services:
   - docker:18.09.7-dind
 
+variables:
+  DEV_PROXY_IMAGE: $CI_REGISTRY/proxy:$CI_COMMIT_REF_NAME
+  DOCKER_DRIVER: overlay
+  DOCKER_HOST: tcp://localhost:2375
+
+
 stages:
   - build_proxy_image
 
