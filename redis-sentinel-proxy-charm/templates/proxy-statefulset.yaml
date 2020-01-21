@@ -37,6 +37,8 @@ spec:
               port: 8080
             initialDelaySeconds: 3
             periodSeconds: 3
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecrets }}
       volumes:
         - name: config-files
           configMap:
