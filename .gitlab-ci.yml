@@ -1,0 +1,14 @@
+image: docker:18.09.7
+
+services:
+  - docker:18.09.7-dind
+
+stages:
+  - build_proxy_image
+
+build_proxy:
+  stage: build_proxy_image
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_USER_PASSWORD $CI_REGISTRY
+    - docker build -t $DEV_PROXY_IMAGE .
+    - docker push $DEV_PROXY_IMAGE
