@@ -17,3 +17,8 @@ proxy:
   replicas: 1
   repository: __CI_REGISTRY_PROXY_IMAGE__
   imagePullPolicy: Always
+
+values:
+  redisName: "redis"
+  sentinelPort: "26379"
+  sentinelService: "sentinel"

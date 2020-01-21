@@ -24,6 +24,13 @@ spec:
           volumeMounts:
             - name: config-files
               mountPath: ./app/conf
+          env:
+          - name: service
+            value: {{ .Values.values.redisName }}
+          - name: port
+            value: {{ .Values.values.sentinelPort }}
+          - name: name
+            value: {{ .Values.values.redisName }}
           readinessProbe:
             httpGet:
               path: /ready
