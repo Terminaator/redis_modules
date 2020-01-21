@@ -56,4 +56,4 @@ helm:
     # Build chart and upload to our ChartMuseum
     - helm plugin install https://github.com/chartmuseum/helm-push
     - helm repo add chartmuseum $CHM_URL --username $CHM_USER --password $CHM_PASS
-    - helm push ./helm --version=$SEMVER chartmuseum
+    - helm push ./redis-sentinel-proxy-charm --version=$SEMVER chartmuseum
