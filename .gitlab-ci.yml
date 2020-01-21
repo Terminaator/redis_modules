@@ -31,3 +31,4 @@ build_redis:
     - cd ./redis
     - docker build -t $DEV_REDIS_SENTINEL_IMAGE .
     - docker push $DEV_REDIS_SENTINEL_IMAGE
+

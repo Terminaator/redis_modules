@@ -6,6 +6,6 @@ RUN apt-get update && apt-get install -y \
     iputils-ping
 RUN gcc --version
 RUN mkdir /modules
-COPY modules /modules
+COPY modules ./modules
 WORKDIR /modules
 RUN make
