@@ -32,15 +32,11 @@
 * redis-sentinel-proxy-charm - CONTAINS HELM CHART STUFFS
 
 **Testing**
-
-kubectl exec -it "pod name" -n "namespace" -- /bin/bash
-kubectl logs -f "pod name" -n "namespace"
-
-
+* kubectl exec -it "pod name" -n "namespace" -- /bin/bash
+* kubectl logs -f "pod name" -n "namespace"
 
 **kubernetes namespace:**
-
-kubectl create namespace "namespace" 
+* kubectl create namespace "namespace"  
 
 **kubernetes rights:**
 ```
