@@ -19,6 +19,6 @@ proxy:
   imagePullPolicy: Always
 
 values:
-  redisName: "redis"
-  sentinelPort: "26379"
-  sentinelService: "sentinel"
+  redisName: redis
+  sentinelPort: 26379
+  sentinelService: sentinel
