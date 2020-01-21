@@ -3,17 +3,17 @@ namespace: redis-sentinel-proxy
 sentinel:
   name: sentinel
   replicas: 3
-  repository: redis_image
+  repository: __CI_REGISTRY_REDIS_IMAGE__
   imagePullPolicy: Never
 
 redis:
   name: redis
   replicas: 3
-  repository: redis_image
+  repository: __CI_REGISTRY_REDIS_IMAGE__
   imagePullPolicy: Never
 
 proxy:
   name: proxy
   replicas: 1
-  repository: proxy_image
+  repository: __CI_REGISTRY_PROXY_IMAGE__
   imagePullPolicy: Never
