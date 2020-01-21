@@ -1,0 +1,19 @@
+namespace: redis-sentinel-proxy
+
+sentinel:
+  name: sentinel
+  replicas: 3
+  repository: redis_image
+  imagePullPolicy: Never
+
+redis:
+  name: redis
+  replicas: 3
+  repository: redis_image
+  imagePullPolicy: Never
+
+proxy:
+  name: proxy
+  replicas: 1
+  repository: proxy_image
+  imagePullPolicy: Never

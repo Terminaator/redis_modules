@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.sentinel.name }}
+  namespace: {{ .Values.namespace }}
+data:
+  sentinel_sh: |
+    #!/bin/bash
+    while ! ping -c 1 redis; do
+        echo 'Waiting for server'
+        sleep 1
+    done
+    redis-sentinel /redis-data/sentinel.conf
+  sentinel_conf: |
+    bind 0.0.0.0
+    port 26379
+    sentinel monitor redis redis 6379 2
+    sentinel parallel-syncs redis 1
+    sentinel down-after-milliseconds redis 5000
+    sentinel failover-timeout redis 60000

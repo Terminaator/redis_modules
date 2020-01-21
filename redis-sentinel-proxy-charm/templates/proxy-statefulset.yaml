@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.proxy.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  serviceName: {{ .Values.proxy.name }}
+  replicas: {{ .Values.proxy.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.proxy.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.proxy.name }}
+    spec:
+      containers:
+        - name: {{ .Values.proxy.name }}
+          image: {{ .Values.proxy.repository }}
+          imagePullPolicy: {{ .Values.proxy.imagePullPolicy }}
+          ports:
+            - containerPort: 9999
+            - containerPort: 8080
+          volumeMounts:
+            - name: config-files
+              mountPath: ./app/conf
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      volumes:
+        - name: config-files
+          configMap:
+            name: {{ .Values.proxy.name }}
+            items:
+              - key: init_json
+                path: init.json
+        

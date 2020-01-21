@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.redis.name }}
+  namespace: {{ .Values.namespace }}
+data:
+  redis_master_conf: |
+    bind 0.0.0.0
+    port 6379
+    loadmodule ./out/so/yearmodule.so
+    loadmodule ./out/so/buildingmodule.so
+    loadmodule ./out/so/documentmodule.so
+    loadmodule ./out/so/proceduremodule.so
+    loadmodule ./out/so/utilitybuildingmodule.so
+    save ""
+    appendonly no
+    maxmemory 1gb
+    maxmemory-policy noeviction
+    timeout 0
+    tcp-keepalive 300
+    tcp-backlog 512
+  redis_slave_conf: |
+    bind 0.0.0.0
+    port 6379
+    replicaof redis 6379
+    loadmodule ./out/so/yearmodule.so
+    loadmodule ./out/so/buildingmodule.so
+    loadmodule ./out/so/documentmodule.so
+    loadmodule ./out/so/proceduremodule.so
+    loadmodule ./out/so/utilitybuildingmodule.so
+    save ""
+    appendonly no
+    maxmemory 1gb
+    maxmemory-policy noeviction
+    replica-serve-stale-data no
+    timeout 0
+    tcp-keepalive 300
+    tcp-backlog 512
+    replica-serve-stale-data yes
+  redis_sh: |
+    #!/bin/bash
+    if [[ ${HOSTNAME} == 'redis-0' ]]
+    then
+        redis-server /redis-data/master.conf
+    else
+        while ! ping -c 1 redis; do
+          echo 'Waiting for master'
+          sleep 1
+        done
+        redis-server /redis-data/slave.conf
+    fi

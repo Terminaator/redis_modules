@@ -1,0 +1,16 @@
+{
+    "sentinel": {
+        "service":"127.0.0.1",
+        "port":"26379"
+    },
+    "redis": {
+        "name": "mymaster",
+        "password": "redis"
+    },
+    "clients": [
+        "http://localhost:8080/ehr/app/api/all1",
+        "http://localhost:8080/ehr/app/api/all2",
+        "http://localhost:8080/ehr/app/api/all3",
+        "http://localhost:8080/ehr/app/api/all"
+    ]
+}

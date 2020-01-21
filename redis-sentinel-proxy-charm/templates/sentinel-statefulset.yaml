@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.sentinel.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  serviceName: {{ .Values.sentinel.name }}
+  replicas: {{ .Values.sentinel.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.sentinel.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.sentinel.name }}
+    spec:
+      containers:
+      - name: {{ .Values.sentinel.name }}
+        image: {{ .Values.sentinel.repository }}
+        imagePullPolicy: {{ .Values.sentinel.imagePullPolicy }}
+        command: ["bash", "-c", "source /redis-data/sentinel.sh" ]
+        ports:
+          - containerPort: 26379
+            protocol: TCP
+            name: {{ .Values.sentinel.name }}
+        volumeMounts:
+          - name: data
+            mountPath: /redis-data
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "redis-cli -p 26379 sentinel get-master-addr-by-name redis"
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+      initContainers:
+      - name: copy
+        image: {{ .Values.sentinel.repository }}
+        imagePullPolicy: {{ .Values.sentinel.imagePullPolicy }}
+        command: ["bash", "-c", "cp -a /copy/. /redis-data/"]
+        volumeMounts:
+        - mountPath: /copy
+          name: config-files
+        - mountPath: /redis-data
+          name: data
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: config-files
+          configMap:
+            name: {{ .Values.sentinel.name }}
+            items:
+              - key: sentinel_sh
+                path: sentinel.sh
+              - key: sentinel_conf
+                path: sentinel.conf
+

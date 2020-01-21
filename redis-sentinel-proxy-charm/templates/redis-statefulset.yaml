@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.redis.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  serviceName: {{ .Values.redis.name }}
+  replicas: {{ .Values.redis.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.redis.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.redis.name }}
+    spec:
+      containers:
+      - name: {{ .Values.redis.name }}
+        image: {{ .Values.redis.repository }}
+        imagePullPolicy: {{ .Values.redis.imagePullPolicy }}
+        command: ["bash", "-c", "source /redis-data/redis.sh" ]
+        ports:
+          - containerPort: 6379
+            protocol: TCP
+            name: {{ .Values.redis.name }}
+        volumeMounts:
+          - name: data
+            mountPath: /redis-data
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "redis-cli -h $(hostname) ping"
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+      initContainers:
+      - name: copy
+        image: {{ .Values.redis.repository }}
+        imagePullPolicy: {{ .Values.redis.imagePullPolicy }}
+        command: ["bash", "-c", "cp -a /copy/. /redis-data/"]
+        volumeMounts:
+        - mountPath: /copy
+          name: config-files
+        - mountPath: /redis-data
+          name: data
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: config-files
+          configMap:
+            name: {{ .Values.redis.name }}
+            items:
+              - key: redis_sh
+                path: redis.sh
+              - key: redis_master_conf
+                path: master.conf
+              - key: redis_slave_conf
+                path: slave.conf

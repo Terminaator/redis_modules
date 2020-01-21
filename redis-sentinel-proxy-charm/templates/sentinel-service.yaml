@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.sentinel.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+  - containerPort: 
+    port: 26379
+    name: {{ .Values.sentinel.name }}
+  clusterIP: None
+  selector:
+    app: {{ .Values.sentinel.name }}
