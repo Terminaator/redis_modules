@@ -20,6 +20,10 @@ proxy:
   repository: __CI_REGISTRY_PROXY_IMAGE__
   imagePullPolicy: Always
 
+ingress:
+  host: devkluster.ehr.ee
+  tlsSecret: redis-dev-cert
+
 values:
   redisName: redis
   sentinelPort: 26379
