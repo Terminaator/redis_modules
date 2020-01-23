@@ -17,14 +17,13 @@ var (
 	localAddr string = ":9999"
 
 	REDIS_STRING_END string = "\r\n"
-
 )
 
 func main() {
 	log.Println("Starting proxy server")
 
 	initProxy()
-	go createReadiness()
+	go createRoutes()
 	go createSentinel()
 	createProxy()
 

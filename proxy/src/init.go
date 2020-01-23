@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"io/ioutil"
 	"log"
 	"os"
@@ -27,7 +26,7 @@ func (s Sentinel) GetIp() string {
 	return s.Service + ":" + s.Port
 }
 
-func readFile() {
+func readClientList() {
 	jsonFile, err := os.Open(conf)
 
 	if err != nil {
@@ -46,8 +45,7 @@ func initProxy() {
 	sentinelPort := getEnv("port", "26379")
 	redisName := getEnv("name", "mymaster")
 
-	flag.Parse()
-	readFile()
+	readClientList()
 
 	proxy.Sentinel = Sentinel{sentinelAddr, sentinelPort}
 	proxy.Redis = Redis{redisName}
