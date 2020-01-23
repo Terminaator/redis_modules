@@ -56,9 +56,10 @@ func checkPart(part *string) bool {
 func makeRequest(command string, args ...string) (*resp2.RawMessage, error) {
 	var raw resp2.RawMessage
 	var err error
+	var b bool
 	for index := 0; index < 10; index++ {
-		if err = doRedis(&raw, command, args...); err == nil {
-			return &raw, err
+		if err, b = doRedisSafe(&raw, command, args...); err == nil || b {
+			return &raw, nil
 		}
 	}
 	log.Println(raw, err)
