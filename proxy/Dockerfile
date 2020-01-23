@@ -6,4 +6,5 @@ ADD . /app
 WORKDIR /app
 RUN go build -o main ./src
 EXPOSE 9999
+EXPOSE 8080
 CMD ["/app/main"]
