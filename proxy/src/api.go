@@ -14,11 +14,11 @@ type Respond struct {
 
 func createRoutes() {
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/api/building", getBuilding)
-	router.HandleFunc("/api/utilitybuilding", getUtilityBuilding)
-	router.HandleFunc("/api/procedure", getProcedure)
-	router.HandleFunc("/api/document/{doty}", getDocument)
-	router.HandleFunc("/api/readiness", getReadiness)
+	router.HandleFunc("/building", getBuilding)
+	router.HandleFunc("/utilitybuilding", getUtilityBuilding)
+	router.HandleFunc("/procedure", getProcedure)
+	router.HandleFunc("/document/{doty}", getDocument)
+	router.HandleFunc("/readiness", getReadiness)
 	go http.ListenAndServe(":8080", router)
 }
 
