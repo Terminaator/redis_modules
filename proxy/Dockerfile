@@ -1,6 +1,7 @@
 FROM golang:latest
 RUN go get -u github.com/sparrc/go-ping
 RUN go get -u github.com/mediocregopher/radix
+RUN go get -u github.com/gorilla/mux
 RUN mkdir /app
 ADD . /app
 WORKDIR /app
