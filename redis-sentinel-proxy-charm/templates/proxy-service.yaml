@@ -6,7 +6,7 @@ metadata:
 spec:
   type: NodePort
   ports:
-  - name: http
+  - name: socket
     port: 9999
     nodePort: 31222
     protocol: TCP 
