@@ -1,0 +1,74 @@
+create or replace PACKAGE BODY PKG_REDIS AS
+    FUNCTION REDIS_API_REQUEST 
+    (
+        COMMAND    IN VARCHAR2
+    )
+    RETURN VARCHAR2
+    IS
+        REQUEST UTL_HTTP.REQ;
+        RESPONSE UTL_HTTP.RESP;
+        BUFFER varchar2(4000); 
+        RET VARCHAR2(128);
+    BEGIN
+        REQUEST := UTL_HTTP.BEGIN_REQUEST(COMMAND, 'get');
+        RESPONSE := UTL_HTTP.GET_RESPONSE(REQUEST);
+        
+        IF (RESPONSE.STATUS_CODE = UTL_HTTP.HTTP_OK) THEN
+            BEGIN
+                LOOP
+                    UTL_HTTP.READ_TEXT(RESPONSE, BUFFER, 4000);
+                    SELECT JSON_VALUE(BUFFER, '$.Respond') AS VALUE INTO RET FROM DUAL;
+                END LOOP;
+            EXCEPTION
+                WHEN UTL_HTTP.END_OF_BODY THEN
+                    UTL_HTTP.END_RESPONSE(RESPONSE);
+                    UTL_HTTP.END_REQUEST(REQUEST);
+            END;
+        ELSE
+            UTL_HTTP.END_RESPONSE(RESPONSE);
+            UTL_HTTP.END_REQUEST(REQUEST);
+            RAISE_APPLICATION_ERROR(-20000, 'Error occured when getting value');
+        END IF;
+        RETURN RET;
+    EXCEPTION
+        WHEN UTL_HTTP.TOO_MANY_REQUESTS THEN
+            UTL_HTTP.END_RESPONSE(RESPONSE);
+    END;
+    
+    FUNCTION GET_EHR_CODE
+    (
+        BUIDLING_TYPE NUMBER
+    )
+    RETURN VARCHAR2
+    IS
+        EHR_CODE VARCHAR2(128);
+    BEGIN
+        IF BUIDLING_TYPE = 0 THEN
+            EHR_CODE := REDIS_API_REQUEST(BUILDING_API);
+        ELSIF BUIDLING_TYPE = 1 THEN
+            EHR_CODE := REDIS_API_REQUEST(UTILITY_BUILDING_API);
+        ELSE
+            RAISE_APPLICATION_ERROR(-20001,'Out of range: Ehitis is 0 and Rajatis is 1');
+        END IF;
+        RETURN EHR_CODE;
+    END;
+    
+    FUNCTION GET_PROCEDURE_CODE
+    RETURN VARCHAR2
+    IS
+        PROCEDURE_CODE VARCHAR2(128);
+    BEGIN
+        RETURN REDIS_API_REQUEST(PROCEDURE_API);
+    END; 
+    
+    FUNCTION GET_DOCUMENT_CODE
+    (
+        DOTY_ID NUMBER
+    )
+    RETURN VARCHAR2
+    IS
+        DOCUMENT_CODE VARCHAR2(128);
+    BEGIN
+        RETURN REDIS_API_REQUEST(DOCUMENT_API || DOTY_ID);
+    END;    
+END PKG_REDIS;

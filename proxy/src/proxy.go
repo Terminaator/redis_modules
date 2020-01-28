@@ -12,7 +12,12 @@ import (
 )
 
 func closeClient(proxyClient *io.ReadWriteCloser) {
-	defer (*proxyClient).Close()
+	(*proxyClient).Close()
+}
+
+func closeClientError(proxyClient *io.ReadWriteCloser) {
+	(*proxyClient).Write([]byte("-Error occured\r\n"))
+	(*proxyClient).Close()
 }
 
 func createProxy() {
@@ -31,6 +36,7 @@ func createProxy() {
 			if conn, err := listener.AcceptTCP(); err != nil {
 				log.Println(err)
 			} else {
+				log.Println("new connection from: ", conn.RemoteAddr().(*net.TCPAddr).IP)
 				go inPipe(conn)
 			}
 		}
@@ -42,6 +48,8 @@ func checkPart(part *string) bool {
 	case
 		"PING",
 		"GET",
+		"QUIT",
+		"EVAL",
 		"HGETALL",
 		"DOCUMENT_CODE",
 		"PROCEDURE_CODE",
@@ -62,21 +70,22 @@ func makeRequest(command string, args ...string) (*resp2.RawMessage, error) {
 			return &raw, nil
 		}
 	}
-	log.Println(raw, err)
+	log.Println(raw, err, "error")
 	return nil, err
 }
 
 func checkMessage(message *[]byte) (*resp2.RawMessage, error) {
 	parts := strings.Split(string(*message), REDIS_STRING_END)
-
-	if length := len(parts); length > 3 && checkPart(&parts[2]) {
-		if length == 4 {
+	if len(parts) > 2 && checkPart(&parts[2]) {
+		if parts[0] == "*1" {
 			return makeRequest(parts[2])
-		} else if length == 6 {
+		} else if parts[0] == "*2" {
 			return makeRequest(parts[2], parts[4])
+		} else if parts[0] == "*3" {
+			return makeRequest(parts[2], parts[4], parts[6])
 		}
 	}
-
+	log.Println(parts)
 	return nil, errors.New("error occured when making redis request")
 }
 
@@ -90,7 +99,7 @@ func redisPipe(proxyClient *io.ReadWriteCloser, message []byte) {
 	if respond, err := checkMessage(&message); err == nil {
 		go outPipe(respond, proxyClient)
 	} else {
-		go closeClient(proxyClient)
+		go closeClientError(proxyClient)
 	}
 }
 
@@ -103,7 +112,6 @@ func inPipe(proxyClient io.ReadWriteCloser) {
 			go closeClient(&proxyClient)
 			break
 		}
-
 		go redisPipe(&proxyClient, bytes.Trim(message, "\x00"))
 
 	}
