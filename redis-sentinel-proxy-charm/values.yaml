@@ -6,19 +6,19 @@ sentinel:
   name: sentinel
   replicas: 3
   repository: __CI_REGISTRY_REDIS_IMAGE__
-  imagePullPolicy: __CI_PULL__
+  imagePullPolicy: Always
 
 redis:
   name: redis
   replicas: 3
   repository: __CI_REGISTRY_REDIS_IMAGE__
-  imagePullPolicy: __CI_PULL__
+  imagePullPolicy: Always
 
 proxy:
   name: proxy
   replicas: 1
   repository: __CI_REGISTRY_PROXY_IMAGE__
-  imagePullPolicy: __CI_PULL__
+  imagePullPolicy: Always
 
 ingress:
   host: devkluster.ehr.ee
