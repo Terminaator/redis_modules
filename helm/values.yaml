@@ -24,7 +24,4 @@ ingress:
   host: devkluster.ehr.ee
   tlsSecret: redis-dev-cert
 
-values:
-  redisName: redis
-  sentinelPort: 26379
-  sentinelService: sentinel
+redisConnectionSecret: redis-connection

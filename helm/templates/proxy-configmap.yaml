@@ -6,6 +6,5 @@ metadata:
 data:
     init_json: |
         {
-            "clients": [
-            ]
+            "clients": []
         }

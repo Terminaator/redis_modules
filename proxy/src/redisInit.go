@@ -96,7 +96,7 @@ func getValuesFromClients(clients []string) *map[string]interface{} {
 func initRedis() {
 	resp := radix.MaybeNil{}
 
-	if err := doRedis(&resp, "GET", "YEAR_KEY"); err == nil && resp.Nil {
+	if err := doRedis(&resp, "GET", YEAR_KEY); err == nil && resp.Nil {
 		addValuesIntoRedis(getValuesFromClients(proxy.Clients))
 		ready = true
 	} else if err != nil {

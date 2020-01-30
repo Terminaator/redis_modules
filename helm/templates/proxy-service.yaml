@@ -4,15 +4,13 @@ metadata:
   name: {{ .Values.proxy.name }}
   namespace: {{ .Values.namespace }}
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
   - name: socket
     port: 9999
-    nodePort: 31222
     protocol: TCP 
   - name: http
     port: 8080
-    nodePort: 31221
     protocol: TCP 
   selector:
     app: {{ .Values.proxy.name }}

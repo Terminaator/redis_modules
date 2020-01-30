@@ -16,6 +16,12 @@ var (
 	conf      string = "./conf/init.json"
 	localAddr string = ":9999"
 
+	BUILDING_CODE         string
+	UTILITY_BUILDING_CODE string
+	PROCEDURE_CODE        string
+	DOCUMENT_CODE         string
+	YEAR_KEY              string
+
 	REDIS_STRING_END string = "\r\n"
 )
 

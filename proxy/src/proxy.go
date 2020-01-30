@@ -51,10 +51,10 @@ func checkPart(part *string) bool {
 		"QUIT",
 		"EVAL",
 		"HGETALL",
-		"DOCUMENT_CODE",
-		"PROCEDURE_CODE",
-		"BUILDING_CODE",
-		"UTILITY_BUILDING_CODE":
+		DOCUMENT_CODE,
+		PROCEDURE_CODE,
+		BUILDING_CODE,
+		UTILITY_BUILDING_CODE:
 		return true
 	}
 	return false

@@ -44,16 +44,16 @@ helm:
     # Extract version (numbers only) from commit tag
     - SEMVER=`echo $CI_COMMIT_REF_NAME | sed 's/.*-\(.*\)/\1/'`
     # Set install image in values file
-    - sed -i "s~__CI_REGISTRY_REDIS_IMAGE__~${DEV_REDIS_SENTINEL_IMAGE}~" redis-sentinel-proxy-charm/values.yaml
-    - sed -i "s~__CI_REGISTRY_PROXY_IMAGE__~${DEV_PROXY_IMAGE}~" redis-sentinel-proxy-charm/values.yaml
-    - sed -i "s~__APPVERSION__~${CI_COMMIT_REF_NAME}~" redis-sentinel-proxy-charm/Chart.yaml
+    - sed -i "s~__CI_REGISTRY_REDIS_IMAGE__~${DEV_REDIS_SENTINEL_IMAGE}~" helm/values.yaml
+    - sed -i "s~__CI_REGISTRY_PROXY_IMAGE__~${DEV_PROXY_IMAGE}~" helm/values.yaml
+    - sed -i "s~__APPVERSION__~${CI_COMMIT_REF_NAME}~" helm/Chart.yaml
     # Debugging aid to show how variables got replaced...
     - echo "---------------------------------"
-    - cat redis-sentinel-proxy-charm/Chart.yaml
+    - cat helm/Chart.yaml
     - echo "---------------------------------"
-    - cat redis-sentinel-proxy-charm/values.yaml
+    - cat helm/values.yaml
     - echo "---------------------------------"
     # Build chart and upload to our ChartMuseum
     - helm plugin install https://github.com/chartmuseum/helm-push
     - helm repo add chartmuseum $CHM_URL --username $CHM_USER --password $CHM_PASS
-    - helm push ./redis-sentinel-proxy-charm --version=$SEMVER chartmuseum
+    - helm push ./helm --version=$SEMVER chartmuseum

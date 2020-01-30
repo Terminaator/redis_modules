@@ -41,9 +41,15 @@ func readClientList() {
 }
 
 func initProxy() {
-	sentinelAddr := getEnv("service", "sentinel")
-	sentinelPort := getEnv("port", "26379")
-	redisName := getEnv("name", "redis")
+	sentinelAddr := getEnv("sentinel.ip", "sentinel")
+	sentinelPort := getEnv("sentinel.port", "26379")
+	redisName := getEnv("redis.name", "redis")
+
+	BUILDING_CODE = getEnv("redis.building.command", "BUILDING_CODE")
+	UTILITY_BUILDING_CODE = getEnv("redis.utility.building.command", "UTILITY_BUILDING_CODE")
+	PROCEDURE_CODE = getEnv("redis.procedure.command", "PROCEDURE_CODE")
+	DOCUMENT_CODE = getEnv("redis.document.command", "DOCUMENT_CODE")
+	DOCUMENT_CODE = getEnv("redis.year.key", "YEAR_KEY")
 
 	readClientList()
 

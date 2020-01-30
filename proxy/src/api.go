@@ -23,19 +23,19 @@ func createRoutes() {
 }
 
 func getBuilding(w http.ResponseWriter, _ *http.Request) {
-	getRespond(&w, "BUILDING_CODE")
+	getRespond(&w, BUILDING_CODE)
 }
 
 func getUtilityBuilding(w http.ResponseWriter, _ *http.Request) {
-	getRespond(&w, "UTILITY_BUILDING_CODE")
+	getRespond(&w, UTILITY_BUILDING_CODE)
 }
 
 func getProcedure(w http.ResponseWriter, _ *http.Request) {
-	getRespond(&w, "PROCEDURE_CODE")
+	getRespond(&w, PROCEDURE_CODE)
 }
 
 func getDocument(w http.ResponseWriter, r *http.Request) {
-	getRespond(&w, "DOCUMENT_CODE", mux.Vars(r)["doty"])
+	getRespond(&w, DOCUMENT_CODE, mux.Vars(r)["doty"])
 }
 
 func getReadiness(w http.ResponseWriter, _ *http.Request) {
