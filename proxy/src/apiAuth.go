@@ -21,8 +21,7 @@ func (amw *authenticationMiddleware) generateToken() {
 func (amw *authenticationMiddleware) authentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("X-Session-Token")
-
-		if token == amw.token {
+		if token == amw.token || "/readiness" == r.URL.Path {
 			next.ServeHTTP(w, r)
 		} else {
 			http.Error(w, "Forbidden", http.StatusForbidden)
