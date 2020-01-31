@@ -49,7 +49,7 @@ func initProxy() {
 	UTILITY_BUILDING_CODE = getEnv("redis.utility.building.command", "UTILITY_BUILDING_CODE")
 	PROCEDURE_CODE = getEnv("redis.procedure.command", "PROCEDURE_CODE")
 	DOCUMENT_CODE = getEnv("redis.document.command", "DOCUMENT_CODE")
-	DOCUMENT_CODE = getEnv("redis.year.key", "YEAR_KEY")
+	YEAR_KEY = getEnv("redis.year.key", "YEAR_KEY")
 
 	readClientList()
 
