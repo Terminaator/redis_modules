@@ -21,6 +21,7 @@ var (
 	PROCEDURE_CODE        string
 	DOCUMENT_CODE         string
 	YEAR_KEY              string
+	TOKEN                 string
 
 	REDIS_STRING_END string = "\r\n"
 )
@@ -29,7 +30,7 @@ func main() {
 	log.Println("Starting proxy server")
 
 	initProxy()
-	go createRoutes()
+	go createRouter()
 	go createSentinel()
 	createProxy()
 

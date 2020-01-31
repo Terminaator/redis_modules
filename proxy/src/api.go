@@ -12,8 +12,19 @@ type Respond struct {
 	Respond string
 }
 
-func createRoutes() {
+func createRouter() {
 	router := mux.NewRouter().StrictSlash(true)
+	addAuthentication(router)
+	createRoutes(router)
+}
+
+func addAuthentication(router *mux.Router) {
+	amw := generateAuthenticationMiddleware()
+	router.Use(amw.authentication)
+}
+
+func createRoutes(router *mux.Router) {
+
 	router.HandleFunc("/building", getBuilding)
 	router.HandleFunc("/utilitybuilding", getUtilityBuilding)
 	router.HandleFunc("/procedure", getProcedure)

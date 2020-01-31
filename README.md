@@ -1,58 +1,46 @@
-**Requirements**
-* Running only proxy without redis, sentinel
-    * Golang packages (go get -u REPO)
-        * github.com/sparrc/go-ping
-        * github.com/mediocregopher/radix
-    * Running proxy
-        * go build -o main.exe .
-        * and running main.exe
-* Running redis modules
-    * Redis server
-        * Build modules with makefile
-        * Import builded modules into redis conf 
-* Running in kubernetes local
-    * Build images
-    * Run redis-sentinel-proxy-charm
-    * Example in run.bat file
+**Redis**
 
-**Project structure**
-* proxy - TCP proxy handles sentinel, redis and client connections (written in Golang)
-    * main.go - starts proxy
-    * init.go - initialises proxy values
-    * proxy.go - handles client connection checks if request is valid and makes redis request and returns it
-    * readiness.go - needed for kubernetes if pod is ready
-    * redis.go - creates redis pool, handles redis connections and redis init if needed.
-    * sentinel.go - tcp connection with sentinel gets new redis master and creates redis pool
-* redis - contains Redis modules
-    * BUILDING_MODULE - CHECKS IF VALUE EXCIST AND INCREASES VALUE WHEN TRIGGERED (VALID VALUES 100000000-199999999)
-    * UTILITY_BUILDING_MODULE - CHECKS IF VALUE EXCIST AND INCREASES VALUE WHEN TRIGGERED (VALID VALUES 200000000-299999999)
-    * PROCEDURE_MODULE - CHECKS IF VALUE EXCIST AND INCREASES VALUE WHEN TRIGGERED (VALID VALUES 0...)
-    * YEAR_MODULE - CHECKS IF YEAR MATCHES ELSE RESETS ALL VALUES IN DOCUMENT_MODULE TO 0
-    * DOCUMENT_MODULE - CHECKS IF DOCUMENT EXCIST AND INCREASES COUNT (VALID VALUES (YEAR TWO LAST DIGITS)+DOTY + / + COUNT -> EXAMPLE 201111/00001)
-* redis-sentinel-proxy-charm - CONTAINS HELM CHART STUFFS
+***Moodulid***
+* yearmodule:
+    * Käsklus - *YEAR*
+    * Võti - *YEAR_KEY*
+    * Võtme väärtus - *Aasta kaks viimast numbrit*
+    * Lubatud võtme väärtus - *Hetkel oleva aasta kaks viimast numbrit*
+    * Tagastab - *Tagastab aasta kaks viimast numbrit*
+* proceduremodule:
+    * Käsklus - *PROCEDURE_CODE*
+    * Võti - *PROCEDURE_KEY*
+    * Võtme väärtus - *Menetluse järjekorranumber*
+    * Lubatud võtme väärtus - *Hetkel oleva menetluse järjekorranumber*
+    * Tagastab - *Tagastab menetluse järjekorranumbri+1*
+* documentmodule:
+    * Käsklus - *DOCUMENT_CODE <dokumendi tüübi id>*
+    * Võti - *DOCUMENT_KEY*
+    * Võtme väljad - *Dokumendi tüübi id*
+    * Võtme väljade väärtused - *Dokumendi tüübi id järjekorranumber*
+    * Lubatud väljade väärtuse - *Hetkel oleva dokumendi tüübi id järjekorranumber*
+    * Tagastab - *Tagastab dokumendi tüübi id järjekorranumbri+1*
+* buildingmodule:
+    * Käsklus - *BUILDING_CODE*
+    * Võti - *EHR_CODE_SET_KEY*
+    * Võtme väli - *EHR_CODE_SET_BUILDING_FIELD*
+    * Võtme välja väärtus - *Ehitise järjekorranumber*
+    * Lubatud välja väärtus - *Hetkel oleva ehitise järjekorranumber vahemikus 100000000-200000000*
+    * Tagastab - *Tagastab ehitise järjekorranumbri+1*
+* utilitybuildingmodule:
+    * Käsklus - *UTILITY_BUILDING_CODE*
+    * Võti - *EHR_CODE_SET_KEY*
+    * Võtme väli - *EHR_CODE_SET_UTILITY_BUILDING_FIELD*
+    * Võtme välja väärtus - *Rajatise järjekorranumber*
+    * Lubatud välja väärtus - *Hetkel oleva rajatise järjekorranumber vahemikus 200000000-300000000*
+    * Tagastab - *Tagastab rajatise järjekorranumbri+1*
 
-**Testing**
-* kubectl exec -it "pod name" -n "namespace" -- /bin/bash
-* kubectl logs -f "pod name" -n "namespace"
-
-**kubernetes namespace:**
-* kubectl create namespace "namespace"  
-
-**kubernetes rights:**
-```
-cat <<EOF | kubectl apply -f -
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: read-pods
-  namespace: kube-system
-subjects:
-  - kind: ServiceAccount
-    name: default
-    namespace: gitlab-managed-apps
-roleRef:
-  kind: ClusterRole
-  name: cluster-admin
-  apiGroup: rbac.authorization.k8s.io
-EOF
-```
+**Proxy**
+* Socket - Lubatud ainult riigipilve sees, kättesaadav namespace järgi
+    * Mõeldud redise frameworkide jaoks, luuakse tcp ühendus  
+* Api - Avatud väljaspoole (Oracle jaoks)
+    * Token peab olema headeris X-Session-Token
+        * /building - *Tagastab ehitise järjekorranumbri+1*
+        * /utilitybuilding - *Tagastab rajatise järjekorranumbri+1*
+        * /procedure - *Tagastab menetluse järjekorranumbri+1*
+        * /document/{doty} - *Tagastab dokumendi tüübi id järjekorranumbri+1*
