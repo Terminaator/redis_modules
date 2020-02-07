@@ -6,19 +6,15 @@ import (
 	"io"
 	"log"
 	"net"
+	"strconv"
 	"strings"
 
 	"github.com/mediocregopher/radix/resp/resp2"
 )
 
-func closeClient(proxyClient *io.ReadWriteCloser) {
-	(*proxyClient).Close()
-}
-
-func closeClientError(proxyClient *io.ReadWriteCloser) {
-	(*proxyClient).Write([]byte("-Error occured\r\n"))
-	(*proxyClient).Close()
-}
+var (
+	localAddr string = ":9999"
+)
 
 func createProxy() {
 	laddr, err := net.ResolveTCPAddr("tcp", localAddr)
@@ -32,87 +28,105 @@ func createProxy() {
 	}
 
 	for {
-		if ready {
-			if conn, err := listener.AcceptTCP(); err != nil {
-				log.Println(err)
-			} else {
-				log.Println("new connection from: ", conn.RemoteAddr().(*net.TCPAddr).IP)
-				go inPipe(conn)
-			}
+		if conn, err := listener.AcceptTCP(); err == nil {
+			go inPipe(conn)
+		} else {
+			log.Println(err)
 		}
 	}
 }
 
-func checkPart(part *string) bool {
-	switch strings.ToUpper(*part) {
+func validPart(command string, p []string) bool {
+	command = strings.ToUpper(command)
+	switch command {
 	case
-		"PING",
 		"GET",
-		"QUIT",
-		"EVAL",
 		"HGETALL",
-		DOCUMENT_CODE,
-		PROCEDURE_CODE,
-		BUILDING_CODE,
-		UTILITY_BUILDING_CODE:
+		"PING",
+		"QUIT",
+		values.Keys.DOCUMENT_CODE,
+		values.Keys.PROCEDURE_CODE,
+		values.Keys.BUILDING_CODE,
+		values.Keys.UTILITY_BUILDING_CODE:
 		return true
 	}
+
+	if command == "EVAL" {
+		eval := strings.ToUpper(p[0])
+		if strings.Contains(eval, "RETURN REDIS.CALL('BUILDING_CODE')") {
+			return true
+		} else if strings.Contains(eval, "RETURN REDIS.CALL('UTILITY_BUILDING_CODE')") {
+			return true
+		} else if strings.Contains(eval, "RETURN REDIS.CALL('PROCEDURE_CODE')") {
+			return true
+		} else if strings.Contains(eval, "RETURN REDIS.CALL('DOCUMENT_CODE") {
+			return true
+		}
+	}
 	return false
-
 }
 
-func makeRequest(command string, args ...string) (*resp2.RawMessage, error) {
-	var raw resp2.RawMessage
-	var err error
-	var b bool
-	for index := 0; index < 10; index++ {
-		if err, b = doRedisSafe(&raw, command, args...); err == nil || b {
-			return &raw, nil
-		}
-	}
-	log.Println(raw, err, "error")
-	return nil, err
-}
-
-func checkMessage(message *[]byte) (*resp2.RawMessage, error) {
+func checkMessage(message *[]byte) (string, []string, error) {
 	parts := strings.Split(string(*message), REDIS_STRING_END)
-	if len(parts) > 2 && checkPart(&parts[2]) {
-		if parts[0] == "*1" {
-			return makeRequest(parts[2])
-		} else if parts[0] == "*2" {
-			return makeRequest(parts[2], parts[4])
-		} else if parts[0] == "*3" {
-			return makeRequest(parts[2], parts[4], parts[6])
+	log.Println("parts", parts)
+
+	if len(parts) > 2 {
+		x, err := strconv.Atoi(parts[0][1:])
+
+		if err != nil {
+			return "", parts, errors.New("Not valid")
 		}
-	}
-	log.Println(parts)
-	return nil, errors.New("error occured when making redis request")
-}
 
-func outPipe(respond *resp2.RawMessage, proxyClient *io.ReadWriteCloser) {
-	if err := respond.MarshalRESP(*proxyClient); err != nil {
-		go closeClient(proxyClient)
-	}
-}
+		var out []string
 
-func redisPipe(proxyClient *io.ReadWriteCloser, message []byte) {
-	if respond, err := checkMessage(&message); err == nil {
-		go outPipe(respond, proxyClient)
+		for i := 0; i < x; i++ {
+			out = append(out, parts[2+i*2])
+		}
+
+		if validPart(out[0], out[1:]) {
+			return out[0], out[1:], nil
+		} else {
+			return "", parts, errors.New("Not valid")
+		}
 	} else {
-		go closeClientError(proxyClient)
+		return "", parts, errors.New("Not valid")
+	}
+}
+
+func outValidPipe(proxyClient *io.ReadWriteCloser, command string, parts []string) {
+	var raw resp2.RawMessage
+	var redisErr resp2.Error
+
+	err := values.Redis.doRedis(&raw, command, parts...)
+
+	if err != nil && !errors.As(err, &redisErr) {
+		(*proxyClient).Write([]byte("-Error occured\r\n"))
+	} else {
+		raw.MarshalRESP(*proxyClient)
+	}
+}
+
+func outNotValidPipe(proxyClient *io.ReadWriteCloser) {
+	(*proxyClient).Write([]byte("-Not valid message\r\n"))
+	(*proxyClient).Close()
+}
+
+func middlePipe(proxyClient *io.ReadWriteCloser, message []byte) {
+	if command, parts, err := checkMessage(&message); err == nil {
+		go outValidPipe(proxyClient, command, parts)
+	} else {
+		go outNotValidPipe(proxyClient)
 	}
 }
 
 func inPipe(proxyClient io.ReadWriteCloser) {
-	message := make([]byte, 128)
 	for {
-		_, err := proxyClient.Read(message)
-
-		if err != nil {
-			go closeClient(&proxyClient)
+		message := make([]byte, 128)
+		if _, err := proxyClient.Read(message); err == nil {
+			go middlePipe(&proxyClient, bytes.Trim(message, "\x00"))
+		} else {
+			proxyClient.Close()
 			break
 		}
-		go redisPipe(&proxyClient, bytes.Trim(message, "\x00"))
-
 	}
 }

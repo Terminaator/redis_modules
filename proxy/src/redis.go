@@ -1,41 +1,53 @@
 package main
 
 import (
-	"errors"
 	"log"
 
 	"github.com/mediocregopher/radix"
-	"github.com/mediocregopher/radix/resp/resp2"
 )
 
-func createRedisPool() {
-	p, err := radix.NewPool("tcp", redisAddr, 10)
+type Redis struct {
+	adr  string
+	Pool *radix.Pool
+}
 
-	if err != nil {
+func (r *Redis) init() {
+	resp := radix.MaybeNil{}
+	if err := r.doRedis(&resp, "GET", values.Keys.YEAR_KEY); err == nil && resp.Nil {
+		log.Println("init needed")
+		addValuesIntoRedis(getValuesFromClients(values.Clients.Clients))
+		values.Ready = true
+	} else if err != nil {
+		log.Fatal("Redis init failed!")
+	} else {
+		log.Println("init not needed")
+		values.Ready = true
+	}
+}
+
+func (r *Redis) createPool() {
+	log.Println("creating pool")
+	if p, err := radix.NewPool("tcp", r.adr, 10); err == nil {
+		r.Pool = p
+		r.init()
+	} else {
+		p.Close()
 		log.Fatal("Failed to create a pool", err)
-	} else {
-		pool = p
-		initRedis()
 	}
 }
 
-func cmdRedis(resp interface{}, command string, args ...string) radix.CmdAction {
-	return radix.Cmd(resp, command, args...)
-}
-
-func doRedis(resp interface{}, command string, args ...string) error {
-	return pool.Do(cmdRedis(resp, command, args...))
-}
-
-func doRedisSafe(resp interface{}, command string, args ...string) (error, bool) {
-	var redisErr resp2.Error
-
-	err := doRedis(resp, command, args...)
-
-	if errors.As(err, &redisErr) {
-		log.Println(err)
-		return err, true
-	} else {
-		return err, false
+func (r *Redis) addAdr(adr string) {
+	if len(r.adr) == 0 {
+		log.Println("New master", adr)
+		r.adr = adr
+		r.createPool()
+	} else if r.adr != adr {
+		log.Println("New master", adr)
+		r.Pool.Close()
+		r.createPool()
 	}
+}
+
+func (r *Redis) doRedis(resp interface{}, command string, args ...string) error {
+	return r.Pool.Do(radix.Cmd(resp, command, args...))
 }

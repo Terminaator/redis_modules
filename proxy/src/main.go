@@ -1,37 +1,24 @@
 package main
 
-import (
-	"log"
-
-	"github.com/mediocregopher/radix"
-)
+import "log"
 
 var (
-	pool  *radix.Pool
-	proxy *Proxy = new(Proxy)
-
-	redisAddr string
-
-	ready     bool   = false
-	conf      string = "./conf/init.json"
-	localAddr string = ":9999"
-
-	BUILDING_CODE         string
-	UTILITY_BUILDING_CODE string
-	PROCEDURE_CODE        string
-	DOCUMENT_CODE         string
-	YEAR_KEY              string
-	TOKEN                 string
-
-	REDIS_STRING_END string = "\r\n"
+	values Init
+	router Router
 )
 
 func main() {
 	log.Println("Starting proxy server")
 
-	initProxy()
-	go createRouter()
-	go createSentinel()
-	createProxy()
+	values = Init{}
+	values.initValues()
 
+	log.Println(values)
+
+	router = Router{Port: ":8080"}
+	router.start(values.Token)
+
+	values.Sentinel.start()
+
+	createProxy()
 }

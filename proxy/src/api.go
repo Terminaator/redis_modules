@@ -3,54 +3,81 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
+type Router struct {
+	Port   string
+	Auth   Auth
+	Router *mux.Router
+}
+
+type Auth struct {
+	Token string
+}
+
 type Respond struct {
 	Respond string
 }
 
-func createRouter() {
-	router := mux.NewRouter().StrictSlash(true)
-	addAuthentication(router)
-	createRoutes(router)
+func (a *Auth) authentication(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("X-Session-Token")
+		if token == a.Token || "/readiness" == r.URL.Path {
+			next.ServeHTTP(w, r)
+		} else {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+		}
+	})
 }
 
-func addAuthentication(router *mux.Router) {
-	amw := generateAuthenticationMiddleware()
-	router.Use(amw.authentication)
+func (a *Auth) middleware(r *mux.Router) {
+	log.Println("adding token check")
+	r.Use(a.authentication)
 }
 
-func createRoutes(router *mux.Router) {
+func (r *Router) start(token string) {
+	log.Println("starting router")
+	r.Router = mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/building", getBuilding)
-	router.HandleFunc("/utilitybuilding", getUtilityBuilding)
-	router.HandleFunc("/procedure", getProcedure)
-	router.HandleFunc("/document/{doty}", getDocument)
-	router.HandleFunc("/readiness", getReadiness)
-	go http.ListenAndServe(":8080", router)
+	auth := Auth{Token: token}
+	auth.middleware(r.Router)
+	r.Auth = auth
+
+	r.addingRoutes()
+}
+
+func (r *Router) addingRoutes() {
+	log.Println("adding routes")
+	r.Router.HandleFunc("/building", getBuilding)
+	r.Router.HandleFunc("/utilitybuilding", getUtilityBuilding)
+	r.Router.HandleFunc("/procedure", getProcedure)
+	r.Router.HandleFunc("/document/{doty}", getDocument)
+	r.Router.HandleFunc("/readiness", getReadiness)
+	go http.ListenAndServe(r.Port, r.Router)
 }
 
 func getBuilding(w http.ResponseWriter, _ *http.Request) {
-	getRespond(&w, BUILDING_CODE)
+	get(&w, values.Keys.BUILDING_CODE)
 }
 
 func getUtilityBuilding(w http.ResponseWriter, _ *http.Request) {
-	getRespond(&w, UTILITY_BUILDING_CODE)
+	get(&w, values.Keys.UTILITY_BUILDING_CODE)
 }
 
 func getProcedure(w http.ResponseWriter, _ *http.Request) {
-	getRespond(&w, PROCEDURE_CODE)
+	get(&w, values.Keys.PROCEDURE_CODE)
 }
 
 func getDocument(w http.ResponseWriter, r *http.Request) {
-	getRespond(&w, DOCUMENT_CODE, mux.Vars(r)["doty"])
+	get(&w, values.Keys.DOCUMENT_CODE, mux.Vars(r)["doty"])
 }
 
 func getReadiness(w http.ResponseWriter, _ *http.Request) {
-	if ready {
+	if values.Ready {
 		w.WriteHeader(http.StatusOK)
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -58,20 +85,17 @@ func getReadiness(w http.ResponseWriter, _ *http.Request) {
 	fmt.Fprint(w, "")
 }
 
-func getRespond(w *http.ResponseWriter, command string, args ...string) {
-	var redisStr string
+func get(w *http.ResponseWriter, command string, args ...string) {
+	log.Println("api", command, args)
 
-	if err, b := makeRedisRequest(&redisStr, command, args...); err == nil || b {
-		var respond Respond
-		if b {
-			respond = Respond{err.Error()}
-			(*w).WriteHeader(http.StatusNotFound)
-		} else {
-			respond = Respond{redisStr}
-		}
-		json.NewEncoder(*w).Encode(respond)
+	var redisStr string
+	var respond Respond
+
+	if err := values.Redis.doRedis(&redisStr, command, args...); err == nil {
+		respond = Respond{redisStr}
 	} else {
+		respond = Respond{err.Error()}
 		(*w).WriteHeader(http.StatusInternalServerError)
 	}
-
+	json.NewEncoder(*w).Encode(respond)
 }

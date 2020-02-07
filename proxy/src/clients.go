@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
-
-	"github.com/mediocregopher/radix"
 )
 
 func makeClientRequests(clientUrl string) *map[string]interface{} {
@@ -72,12 +70,12 @@ func addValuesIntoRedis(m *map[string]interface{}) {
 	for k, v := range *m {
 		if reflect.ValueOf(v).Kind() == reflect.Map {
 			for k2, v2 := range v.(map[string]interface{}) {
-				if err := doRedis(nil, "HSET", k, k2, strconv.Itoa(v2.(int))); err != nil {
+				if err := values.Redis.doRedis(nil, "HSET", k, k2, strconv.Itoa(v2.(int))); err != nil {
 					log.Fatal("failed adding value")
 				}
 			}
 		} else {
-			if err := doRedis(nil, "SET", k, strconv.Itoa(v.(int))); err != nil {
+			if err := values.Redis.doRedis(nil, "SET", k, strconv.Itoa(v.(int))); err != nil {
 				log.Fatal("failed adding value")
 			}
 		}
@@ -91,18 +89,4 @@ func getValuesFromClients(clients []string) *map[string]interface{} {
 	}
 	log.Println(final)
 	return &final
-}
-
-func initRedis() {
-	resp := radix.MaybeNil{}
-
-	if err := doRedis(&resp, "GET", YEAR_KEY); err == nil && resp.Nil {
-		addValuesIntoRedis(getValuesFromClients(proxy.Clients))
-		ready = true
-	} else if err != nil {
-		log.Fatal("Redis init failed!")
-	} else {
-		ready = true
-		log.Println("Redis already initialized", resp)
-	}
 }
