@@ -1,5 +1,14 @@
 **Redis**
 
+***Proxy***
+* api - mõeldud väljaspoole riigipilve
+* clients - saab vastavalt kliendi käest väärtused, vajalik redise väärtustamiseks
+* init - algväärdustab rakenduse
+* main - proxy käivitamiseks vajalik
+* proxy - redise socket, kontrollib käsklusi, mis tuleb tcp socketi pealt, ainult riigipilvest
+* redis - hoiab redis pool'i
+* sentinel - hoiab ühendust sentineliga, saab vastava redis masteri
+
 ***Moodulid***
 * yearmodule:
     * Käsklus - *YEAR*
