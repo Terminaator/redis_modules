@@ -1,5 +1,14 @@
 **Redis**
 
+***Proxy***
+* api - mõeldud väljaspoole riigipilve
+* clients - saab vastavalt kliendi käest väärtused, vajalik redise väärtustamiseks
+* init - algväärdustab rakenduse
+* main - proxy käivitamiseks vajalik
+* proxy - redise socket, kontrollib käsklusi, mis tuleb tcp socketi pealt, ainult riigipilvest
+* redis - hoiab redis pool'i
+* sentinel - hoiab ühendust sentineliga, saab vastava redis masteri
+
 ***Moodulid***
 * yearmodule:
     * Käsklus - *YEAR*
@@ -37,7 +46,19 @@
 
 **Proxy**
 * Socket - Lubatud ainult riigipilve sees, kättesaadav namespace järgi
-    * Mõeldud redise frameworkide jaoks, luuakse tcp ühendus  
+    * Mõeldud redise frameworkide jaoks, luuakse tcp ühendus
+    * Lubatud käsklused:
+        * GET
+        * HGETALL
+        * PING
+        * DOCUMENT_CODE
+        * PROCEDURE_CODE
+        * BUILDING_CODE
+        * UTILITY_BUILDING_CODE
+        * EVAL (piiratud, oleneb frameworkist, kui framework ei võimalda kasutada custom commande)
+            * return redis.call('PROCEDURE_CODE')
+            * return redis.call('UTILITY_BUILDING_CODE')
+            * return redis.call('DOCUMENT_CODE', 'doty_id')
 * Api - Avatud väljaspoole (Oracle jaoks)
     * Token peab olema headeris X-Session-Token
         * /building - *Tagastab ehitise järjekorranumbri+1*
