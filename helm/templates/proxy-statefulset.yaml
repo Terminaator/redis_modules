@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ .Values.proxy.name }}
-  namespace: {{ .Values.namespace }}
 spec:
   serviceName: {{ .Values.proxy.name }}
   replicas: {{ .Values.proxy.replicas }}

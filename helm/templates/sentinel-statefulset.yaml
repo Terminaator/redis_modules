@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ .Values.sentinel.name }}
-  namespace: {{ .Values.namespace }}
 spec:
   serviceName: {{ .Values.sentinel.name }}
   replicas: {{ .Values.sentinel.replicas }}
