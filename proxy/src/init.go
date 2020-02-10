@@ -26,7 +26,6 @@ type Keys struct {
 	UTILITY_BUILDING_CODE string
 	PROCEDURE_CODE        string
 	DOCUMENT_CODE         string
-	YEAR_KEY              string
 }
 
 func (i *Init) initValues() {
@@ -37,8 +36,7 @@ func (i *Init) initValues() {
 		BUILDING_CODE:         getEnv("redis.building.command", "BUILDING_CODE"),
 		UTILITY_BUILDING_CODE: getEnv("redis.utility.building.command", "UTILITY_BUILDING_CODE"),
 		PROCEDURE_CODE:        getEnv("redis.procedure.command", "PROCEDURE_CODE"),
-		DOCUMENT_CODE:         getEnv("redis.document.command", "DOCUMENT_CODE"),
-		YEAR_KEY:              getEnv("redis.year.key", "YEAR_KEY")}
+		DOCUMENT_CODE:         getEnv("redis.document.command", "DOCUMENT_CODE")}
 
 	i.Sentinel = Sentinel{
 		Ip:   getEnv("sentinel.ip", "127.0.0.1"),

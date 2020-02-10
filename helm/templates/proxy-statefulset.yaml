@@ -59,11 +59,6 @@ spec:
               secretKeyRef:
                 name: {{ .Values.redisConnectionSecret }}
                 key: redis.document.command
-          - name: redis.year.key
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.redisConnectionSecret }}
-                key: redis.year.key
           - name: redis.token
             valueFrom:
               secretKeyRef:
