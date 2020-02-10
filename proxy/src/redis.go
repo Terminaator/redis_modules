@@ -12,17 +12,9 @@ type Redis struct {
 }
 
 func (r *Redis) init() {
-	resp := radix.MaybeNil{}
-	if err := r.doRedis(&resp, "GET", values.Keys.YEAR_KEY); err == nil && resp.Nil {
-		log.Println("init needed")
-		addValuesIntoRedis(getValuesFromClients(values.Clients.Clients))
-		values.Ready = true
-	} else if err != nil {
-		log.Fatal("Redis init failed!")
-	} else {
-		log.Println("init not needed")
-		values.Ready = true
-	}
+	log.Println("adding values")
+	addValuesIntoRedis(getValuesFromClients(values.Clients.Clients))
+	values.Ready = true
 }
 
 func (r *Redis) createPool() {
