@@ -91,7 +91,7 @@ func get(w *http.ResponseWriter, command string, args ...string) {
 	var redisStr string
 	var respond Respond
 
-	if err := values.Redis.doRedisReady(&redisStr, command, args...); err == nil {
+	if err := values.Redis.doRedis(&redisStr, command, args...); err == nil {
 		respond = Respond{redisStr}
 	} else {
 		respond = Respond{err.Error()}

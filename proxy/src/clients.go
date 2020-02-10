@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
+
+	"github.com/mediocregopher/radix"
 )
 
 func makeClientRequests(clientUrl string) *map[string]interface{} {
@@ -66,20 +68,21 @@ func addValuesToMap(final *map[string]interface{}, client *map[string]interface{
 	}
 }
 
-func addValuesIntoRedis(m *map[string]interface{}) {
+func addValuesIntoRedis(p *radix.Pool, m *map[string]interface{}) *radix.Pool {
 	for k, v := range *m {
 		if reflect.ValueOf(v).Kind() == reflect.Map {
 			for k2, v2 := range v.(map[string]interface{}) {
-				if err := values.Redis.doRedis(nil, "HSET", k, k2, strconv.Itoa(v2.(int))); err != nil {
+				if err := p.Do(radix.Cmd(nil, "HSET", k, k2, strconv.Itoa(v2.(int)))); err != nil {
 					log.Fatal("failed adding value")
 				}
 			}
 		} else {
-			if err := values.Redis.doRedis(nil, "SET", k, strconv.Itoa(v.(int))); err != nil {
+			if err := p.Do(radix.Cmd(nil, "SET", k, strconv.Itoa(v.(int)))); err != nil {
 				log.Fatal("failed adding value")
 			}
 		}
 	}
+	return p
 }
 
 func getValuesFromClients(clients []string) *map[string]interface{} {

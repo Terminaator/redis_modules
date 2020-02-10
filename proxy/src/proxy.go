@@ -97,7 +97,7 @@ func outValidPipe(proxyClient *io.ReadWriteCloser, command string, parts []strin
 	var raw resp2.RawMessage
 	var redisErr resp2.Error
 
-	err := values.Redis.doRedisReady(&raw, command, parts...)
+	err := values.Redis.doRedis(&raw, command, parts...)
 
 	if err != nil && !errors.As(err, &redisErr) {
 		go outNotValidPipe(proxyClient)
