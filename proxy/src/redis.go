@@ -21,6 +21,7 @@ func (r *Redis) init() {
 func (r *Redis) createPool() {
 	log.Println("creating pool")
 	if p, err := radix.NewPool("tcp", r.adr, 10); err == nil {
+		values.Ready = false
 		r.Pool = p
 		r.init()
 	} else {
