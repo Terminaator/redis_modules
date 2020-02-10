@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/mediocregopher/radix"
 )
@@ -19,8 +20,10 @@ func (r *Redis) init(p *radix.Pool) *radix.Pool {
 func (r *Redis) createPool() {
 	log.Println("creating pool")
 	if p, err := radix.NewPool("tcp", r.adr, 10); err == nil {
+		values.Timeout = true
 		r.Pool = r.init(p)
 		values.Ready = true
+		values.Timeout = false
 	} else {
 		p.Close()
 		log.Fatal("Failed to create a pool", err)
@@ -40,5 +43,12 @@ func (r *Redis) addAdr(adr string) {
 }
 
 func (r *Redis) doRedis(resp interface{}, command string, args ...string) error {
-	return r.Pool.Do(radix.Cmd(resp, command, args...))
+	for {
+		if values.Timeout {
+			log.Println("Sleeping, waiting redis")
+			time.Sleep(1 * time.Second)
+		} else {
+			return r.Pool.Do(radix.Cmd(resp, command, args...))
+		}
+	}
 }

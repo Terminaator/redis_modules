@@ -17,6 +17,7 @@ type Init struct {
 	Clients  Clients
 	Keys     Keys
 	Ready    bool
+	Timeout  bool
 	Token    string
 }
 
@@ -31,6 +32,7 @@ type Keys struct {
 func (i *Init) initValues() {
 	log.Println("adding values")
 	i.Ready = false
+	i.Timeout = false
 	i.Keys = Keys{
 		BUILDING_CODE:         getEnv("redis.building.command", "BUILDING_CODE"),
 		UTILITY_BUILDING_CODE: getEnv("redis.utility.building.command", "UTILITY_BUILDING_CODE"),
