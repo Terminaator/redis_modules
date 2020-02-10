@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 
 	"github.com/mediocregopher/radix"
@@ -20,7 +21,6 @@ func (r *Redis) init() {
 func (r *Redis) createPool() {
 	log.Println("creating pool")
 	if p, err := radix.NewPool("tcp", r.adr, 10); err == nil {
-		values.Ready = false
 		r.Pool = p
 		r.init()
 	} else {
@@ -43,4 +43,12 @@ func (r *Redis) addAdr(adr string) {
 
 func (r *Redis) doRedis(resp interface{}, command string, args ...string) error {
 	return r.Pool.Do(radix.Cmd(resp, command, args...))
+}
+
+func (r *Redis) doRedisReady(resp interface{}, command string, args ...string) error {
+	if values.Ready {
+		return r.Pool.Do(radix.Cmd(resp, command, args...))
+	} else {
+		return errors.New("Not ready")
+	}
 }

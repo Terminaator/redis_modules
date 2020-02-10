@@ -97,10 +97,10 @@ func outValidPipe(proxyClient *io.ReadWriteCloser, command string, parts []strin
 	var raw resp2.RawMessage
 	var redisErr resp2.Error
 
-	err := values.Redis.doRedis(&raw, command, parts...)
+	err := values.Redis.doRedisReady(&raw, command, parts...)
 
 	if err != nil && !errors.As(err, &redisErr) {
-		(*proxyClient).Write([]byte("-Error occured\r\n"))
+		go outNotValidPipe(proxyClient)
 	} else {
 		raw.MarshalRESP(*proxyClient)
 	}
