@@ -2,22 +2,76 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"log"
 	"net"
-	"strconv"
-	"strings"
-
-	"github.com/mediocregopher/radix/resp/resp2"
 )
 
-var (
-	localAddr string = ":9999"
-)
+type Proxy struct {
+	adr string
+}
 
-func createProxy() {
-	laddr, err := net.ResolveTCPAddr("tcp", localAddr)
+type Connection struct {
+	ip    string
+	rwc   io.ReadWriteCloser
+	redis Redis
+}
+
+func (c *Connection) read() ([]byte, error) {
+	message := make([]byte, 128)
+
+	if _, err := c.rwc.Read(message); err == nil {
+		return bytes.Trim(message, "\x00"), err
+	} else {
+		return nil, err
+	}
+}
+
+func (c *Connection) closeOnError(err error) {
+	log.Println("closing connection", c.ip, err)
+	c.rwc.Close()
+	c.redis.close()
+}
+
+func (p *Proxy) outPipe(conn Connection, out []byte) {
+	log.Println("out message", string(out))
+
+	_, err := conn.rwc.Write(out)
+
+	if err != nil {
+		conn.closeOnError(err)
+	}
+
+	if len(out) > 0 && out[0] == '-' {
+		log.Println("init needed")
+		host = ""
+	}
+}
+
+func (p *Proxy) middlePipe(conn Connection, in []byte) {
+	out := make([]byte, 4096)
+	conn.redis.do(in, out)
+	p.outPipe(conn, bytes.Trim(out, "\x00"))
+}
+
+func (p *Proxy) inPipe(conn Connection) {
+	log.Println("starting to read from", conn.ip)
+	conn.redis.start()
+	for {
+		if ready {
+			if message, err := conn.read(); err == nil {
+				log.Println("from", conn.ip, "message", string(message))
+				p.middlePipe(conn, message)
+			} else {
+				go conn.closeOnError(err)
+				break
+			}
+		}
+	}
+}
+
+func (p *Proxy) start() {
+	laddr, err := net.ResolveTCPAddr("tcp", p.adr)
 	if err != nil {
 		log.Fatal("Failed to resolve local address: ", err)
 	}
@@ -29,104 +83,8 @@ func createProxy() {
 
 	for {
 		if conn, err := listener.AcceptTCP(); err == nil {
-			go inPipe(conn)
-		} else {
-			log.Println(err)
-		}
-	}
-}
-
-func validPart(command string, p []string) bool {
-	command = strings.ToUpper(command)
-	switch command {
-	case
-		"GET",
-		"HGETALL",
-		"PING",
-		"QUIT",
-		values.Keys.DOCUMENT_CODE,
-		values.Keys.PROCEDURE_CODE,
-		values.Keys.BUILDING_CODE,
-		values.Keys.UTILITY_BUILDING_CODE:
-		return true
-	}
-
-	if command == "EVAL" {
-		eval := strings.ToUpper(p[0])
-		if strings.Contains(eval, "RETURN REDIS.CALL('BUILDING_CODE')") {
-			return true
-		} else if strings.Contains(eval, "RETURN REDIS.CALL('UTILITY_BUILDING_CODE')") {
-			return true
-		} else if strings.Contains(eval, "RETURN REDIS.CALL('PROCEDURE_CODE')") {
-			return true
-		} else if strings.Contains(eval, "RETURN REDIS.CALL('DOCUMENT_CODE") {
-			return true
-		}
-	}
-	return false
-}
-
-func checkMessage(message *[]byte) (string, []string, error) {
-	parts := strings.Split(string(*message), REDIS_STRING_END)
-	log.Println("parts", parts)
-
-	if len(parts) > 2 {
-		x, err := strconv.Atoi(parts[0][1:])
-
-		if err != nil {
-			return "", parts, errors.New("Not valid")
-		}
-
-		var out []string
-
-		for i := 0; i < x; i++ {
-			out = append(out, parts[2+i*2])
-		}
-
-		if validPart(out[0], out[1:]) {
-			return out[0], out[1:], nil
-		} else {
-			return "", parts, errors.New("Not valid")
-		}
-	} else {
-		return "", parts, errors.New("Not valid")
-	}
-}
-
-func outValidPipe(proxyClient *io.ReadWriteCloser, command string, parts []string) {
-	var raw resp2.RawMessage
-	var redisErr resp2.Error
-
-	err := values.Redis.doRedis(&raw, command, parts...)
-
-	if err != nil && !errors.As(err, &redisErr) {
-		go outNotValidPipe(proxyClient)
-	} else {
-		raw.MarshalRESP(*proxyClient)
-	}
-}
-
-func outNotValidPipe(proxyClient *io.ReadWriteCloser) {
-	(*proxyClient).Write([]byte("-Not valid message\r\n"))
-	(*proxyClient).Close()
-}
-
-func middlePipe(proxyClient *io.ReadWriteCloser, message []byte) {
-	if command, parts, err := checkMessage(&message); err == nil {
-		go outValidPipe(proxyClient, command, parts)
-	} else {
-		go outNotValidPipe(proxyClient)
-	}
-}
-
-func inPipe(proxyClient io.ReadWriteCloser) {
-	for {
-		message := make([]byte, 128)
-		if _, err := proxyClient.Read(message); err == nil {
-			go middlePipe(&proxyClient, bytes.Trim(message, "\x00"))
-		} else {
-			proxyClient.Close()
-			break
+			log.Println("new connection from", conn.RemoteAddr().(*net.TCPAddr).IP.String())
+			go p.inPipe(Connection{ip: conn.RemoteAddr().(*net.TCPAddr).IP.String(), rwc: conn, redis: Redis{}})
 		}
 	}
 }

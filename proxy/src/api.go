@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -61,23 +63,23 @@ func (r *Router) addingRoutes() {
 }
 
 func getBuilding(w http.ResponseWriter, _ *http.Request) {
-	get(&w, values.Keys.BUILDING_CODE)
+	respond(&w, fmt.Sprintf("*1\r\n$%d\r\n%s\r\n", len(KEYS.BUILDING_CODE), KEYS.BUILDING_CODE))
 }
 
 func getUtilityBuilding(w http.ResponseWriter, _ *http.Request) {
-	get(&w, values.Keys.UTILITY_BUILDING_CODE)
+	respond(&w, fmt.Sprintf("*1\r\n$%d\r\n%s\r\n", len(KEYS.UTILITY_BUILDING_CODE), KEYS.UTILITY_BUILDING_CODE))
 }
 
 func getProcedure(w http.ResponseWriter, _ *http.Request) {
-	get(&w, values.Keys.PROCEDURE_CODE)
+	respond(&w, fmt.Sprintf("*1\r\n$%d\r\n%s\r\n", len(KEYS.PROCEDURE_CODE), KEYS.PROCEDURE_CODE))
 }
 
 func getDocument(w http.ResponseWriter, r *http.Request) {
-	get(&w, values.Keys.DOCUMENT_CODE, mux.Vars(r)["doty"])
+	respond(&w, fmt.Sprintf("*2\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n", len(KEYS.DOCUMENT_CODE), KEYS.DOCUMENT_CODE, len(mux.Vars(r)["doty"]), mux.Vars(r)["doty"]))
 }
 
 func getReadiness(w http.ResponseWriter, _ *http.Request) {
-	if values.Ready {
+	if ready {
 		w.WriteHeader(http.StatusOK)
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -85,17 +87,43 @@ func getReadiness(w http.ResponseWriter, _ *http.Request) {
 	fmt.Fprint(w, "")
 }
 
-func get(w *http.ResponseWriter, command string, args ...string) {
-	log.Println("api", command, args)
-
-	var redisStr string
-	var respond Respond
-
-	if err := values.Redis.doRedis(&redisStr, command, args...); err == nil {
-		respond = Respond{redisStr}
-	} else {
-		respond = Respond{err.Error()}
-		(*w).WriteHeader(http.StatusInternalServerError)
+func convert(out string) (string, error) {
+	if len(out) > 0 {
+		if out[0] == ':' || out[0] == '+' {
+			return out[1:], nil
+		} else {
+			return "", errors.New(out[1:])
+		}
 	}
-	json.NewEncoder(*w).Encode(respond)
+	return "", errors.New("sth went wrong")
+}
+
+func doRedis(command []byte) (string, error) {
+	redis := Redis{}
+	redis.start()
+	out := make([]byte, 128)
+
+	redis.do(command, out)
+	redis.close()
+
+	return convert(string(bytes.Trim(out, "\x00")))
+
+}
+
+func respond(w *http.ResponseWriter, command string) {
+	log.Println("api", command)
+
+	var res Respond
+	r, err := doRedis([]byte(command))
+
+	if err == nil {
+		res = Respond{r}
+	} else {
+		host = ""
+		res = Respond{err.Error()}
+		(*w).WriteHeader(http.StatusInternalServerError)
+		log.Println("init needed")
+	}
+
+	json.NewEncoder(*w).Encode(res)
 }

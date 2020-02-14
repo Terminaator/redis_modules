@@ -15,7 +15,7 @@ setlocal enableextensions
 ::call helm install redis-sentinel-proxy .
 ::cd ..
 
-cd proxy/src
+cd proxy/new
 call go build -o main.exe .
 call main.exe
 

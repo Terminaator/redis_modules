@@ -3,12 +3,11 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"reflect"
 	"strconv"
-
-	"github.com/mediocregopher/radix"
 )
 
 func makeClientRequests(clientUrl string) *map[string]interface{} {
@@ -29,7 +28,7 @@ func makeClientRequests(clientUrl string) *map[string]interface{} {
 
 }
 
-func addValueToMap(final *map[string]interface{}, key *string, value int) {
+func addBiggestValueIntoMap(final *map[string]interface{}, key *string, value int) {
 	if finalValue, ok := (*final)[*key]; ok {
 		if finalValue.(int) < value {
 			(*final)[*key] = value
@@ -47,49 +46,47 @@ func convertMap(m *map[string]interface{}) *map[string]interface{} {
 	return &r
 }
 
-func addValuesToMap(final *map[string]interface{}, client *map[string]interface{}) {
+func addBiggestValuesIntoMap(final *map[string]interface{}, client *map[string]interface{}) {
 	for key, value := range *client {
 		switch v := value.(type) {
 		case map[string]interface{}:
 			m := convertMap(&v)
 			if finalValue, ok := (*final)[key]; ok {
 				finalSubValue := finalValue.(map[string]interface{})
-				addValuesToMap(&finalSubValue, m)
+				addBiggestValuesIntoMap(&finalSubValue, m)
 			} else {
 				(*final)[key] = *m
 			}
 		case float64:
-			addValueToMap(final, &key, int(v))
+			addBiggestValueIntoMap(final, &key, int(v))
 		case int:
-			addValueToMap(final, &key, v)
+			addBiggestValueIntoMap(final, &key, v)
 		default:
 			log.Fatal("Wrong type")
 		}
 	}
 }
 
-func addValuesIntoRedis(p *radix.Pool, m *map[string]interface{}) *radix.Pool {
-	for k, v := range *m {
-		if reflect.ValueOf(v).Kind() == reflect.Map {
-			for k2, v2 := range v.(map[string]interface{}) {
-				if err := p.Do(radix.Cmd(nil, "HSET", k, k2, strconv.Itoa(v2.(int)))); err != nil {
-					log.Fatal("failed adding value")
-				}
-			}
-		} else {
-			if err := p.Do(radix.Cmd(nil, "SET", k, strconv.Itoa(v.(int)))); err != nil {
-				log.Fatal("failed adding value")
-			}
-		}
-	}
-	return p
-}
-
-func getValuesFromClients(clients []string) *map[string]interface{} {
+func getValuesFromClients() *map[string]interface{} {
 	final := make(map[string]interface{})
-	for _, client := range clients {
-		addValuesToMap(&final, makeClientRequests(client))
+	for _, client := range CLIENTS.Clients {
+		log.Println(client)
+		addBiggestValuesIntoMap(&final, makeClientRequests(client))
 	}
 	log.Println(final)
 	return &final
+}
+
+func addValuesIntoRedis(redis Redis, m *map[string]interface{}) {
+	for k, v := range *m {
+		if reflect.ValueOf(v).Kind() == reflect.Map {
+			for k2, v2 := range v.(map[string]interface{}) {
+				redis.doInit([]byte(
+					fmt.Sprintf("*4\r\n$4\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%d\r\n", "HSET", len(k), k, len(k2), k2, len(strconv.Itoa(v2.(int))), v2.(int))))
+			}
+		} else {
+			redis.doInit([]byte(
+				fmt.Sprintf("*3\r\n$3\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%d\r\n", "SET", len(k), k, len(strconv.Itoa(v.(int))), v.(int))))
+		}
+	}
 }
