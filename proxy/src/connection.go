@@ -45,7 +45,7 @@ func (c *Connection) redisPipe(message []byte) {
 
 func (c *Connection) inPipe() {
 	for {
-		buffer := make([]byte, 1024)
+		buffer := make([]byte, 2048)
 
 		if _, err := c.rwc.Read(buffer); err == nil {
 			go c.redisPipe(bytes.Trim(buffer, "\x00"))
