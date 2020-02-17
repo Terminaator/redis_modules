@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.proxy.name }}
+  name: {{ .Values.ehrProxy.name }}
 data:
     init_json: |
         {
