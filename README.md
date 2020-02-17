@@ -11,7 +11,7 @@ Kasutusel on kaks proxyt (default-proxy, ehrcode-proxy). Mida saab kasutada redi
         * /utilitybuilding
         * /procedure
         * /document/{doty}
-        * täpsemalt ""
+        * täpsemalt [https://swaggerui.mkm.ee/](https://swaggerui.mkm.ee/)
     * socket (TCP on mõeldud kasutamiseks riigipilves, väljaspoolt ligi ei saa)
         *  host - <teenuse_nimi>.<namespace> -> ehrcode-proxy.dev-redis
         *  port - 9999 on mõeldud ehrcode-proxy jaoks
