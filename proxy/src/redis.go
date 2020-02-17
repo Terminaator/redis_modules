@@ -73,7 +73,7 @@ func (r *Redis) do(in []byte, out []byte) {
 
 func (r *Redis) connect() {
 	if r.state != Close {
-		addr, _ := net.ResolveTCPAddr("tcp", ":6379")
+		addr, _ := net.ResolveTCPAddr("tcp", SENTINEL.ip)
 		c, err := net.DialTCP("tcp", nil, addr)
 
 		if err == nil {
