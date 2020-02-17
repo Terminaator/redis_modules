@@ -34,7 +34,7 @@ Kasutusel on kaks proxyt (default-proxy, ehrcode-proxy). Mida saab kasutada redi
         *  host - <teenuse_nimi>.<namespace> -> default-proxy.dev-redis
         *  port - 9998 on mõeldud ehrcode-proxy jaoks
     
-**näide ehrcode-proxy teenuse kasutamisest (python)**
+**näide default-proxy teenuse kasutamisest (python)**
 
 *import redis*
 
