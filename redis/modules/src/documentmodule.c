@@ -53,7 +53,7 @@ int command(RedisModuleCtx *ctx, RedisModuleString **argv, int argc)
             return get_document_number(ctx, argv[1], year_reply, doty_count_reply);
         }
     }
-    return RedisModule_ReplyWithError(ctx, "Error occured when getting document number");
+    return RedisModule_ReplyWithError(ctx, "Error occurred when getting value");
 }
 
 int RedisModule_OnLoad(RedisModuleCtx *ctx)

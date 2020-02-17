@@ -7,84 +7,82 @@ import (
 )
 
 var (
-	host string
+	quit []byte = []byte("*1\r\n$4\r\nquit\r\n")
+)
+
+type RedisState int
+
+const (
+	Connect RedisState = iota
+	Open
+	Close
 )
 
 type Redis struct {
-	remote *net.TCPConn
+	conn  *net.TCPConn
+	state RedisState
 }
 
 func (r *Redis) close() {
-	log.Println("ending session")
-	r.remote.Write([]byte("*1\r\n$4\r\nQUIT\r\n"))
+	r.state = Close
+	r.conn.Write(quit)
 }
 
 func (r *Redis) read(in []byte, out []byte) {
-	_, err := r.remote.Read(out)
-
-	if err != nil {
-		r.start()
-		r.write(in, out)
+	if _, err := r.conn.Read(out); err != nil {
+		r.state = Connect
+		r.do(in, out)
 	}
 }
 
 func (r *Redis) write(in []byte, out []byte) {
-	_, err := r.remote.Write(in)
-
-	if err != nil {
-		r.start()
-		r.write(in, out)
-	} else {
+	if _, err := r.conn.Write(in); err == nil {
 		r.read(in, out)
+	} else {
+		r.state = Connect
+		r.do(in, out)
 	}
-
 }
 
-func (r *Redis) doInit(in []byte) {
-	_, err := r.remote.Write(in)
-	if err != nil {
-		log.Fatal("writing failed")
+func (r *Redis) clientsDo(in []byte, out []byte) {
+	r.do(in, out)
+}
+
+func (r *Redis) normalDo(in []byte, out []byte) {
+	if !NORMAL {
+		if CLIENTS.state != Old {
+			for {
+				if CLIENTS.state == Old {
+					break
+				}
+				time.Sleep(1 * time.Second)
+			}
+		}
 	}
+	r.do(in, out)
 }
 
 func (r *Redis) do(in []byte, out []byte) {
-	r.write(in, out)
-}
-
-func (r *Redis) startWithIp(ip string) {
-	addr, _ := net.ResolveTCPAddr("tcp", ip)
-	remote, err := net.DialTCP("tcp", nil, addr)
-
-	if err != nil {
-		log.Fatal("crash")
-	} else {
-		r.remote = remote
+	if r.state == Connect {
+		r.connect()
+		r.do(in, out)
+	} else if r.state == Open {
+		r.write(in, out)
 	}
 }
 
-func (r *Redis) start() {
-	addr, _ := net.ResolveTCPAddr("tcp", host)
+func (r *Redis) connect() {
+	if r.state != Close {
+		addr, _ := net.ResolveTCPAddr("tcp", ":6379")
+		c, err := net.DialTCP("tcp", nil, addr)
 
-	remote, err := net.DialTCP("tcp", nil, addr)
-
-	if err != nil {
-		log.Println("failed to create redis")
-		time.Sleep(1 * time.Second)
-		r.start()
-	} else {
-		r.remote = remote
-	}
-}
-
-func redisInit(ip string) {
-	if !ready || ip != host {
-		redis := Redis{}
-		redis.startWithIp(ip)
-		addValuesIntoRedis(redis, getValuesFromClients())
-		redis.close()
-
-		log.Println("new host", ip)
-		host = ip
-		ready = true
+		if err == nil {
+			r.state = Open
+			r.conn = c
+		} else {
+			log.Println("trying to make new redis session")
+			time.Sleep(1 * time.Second)
+			r.connect()
+		}
 	}
 }

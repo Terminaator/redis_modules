@@ -28,7 +28,7 @@ int reset_document_doty_counts(RedisModuleCtx *ctx, int *year)
                 RedisModuleCallReply *elememt_reply = RedisModule_Call(ctx, "HSET", "csc", DOCUMENT_KEY, RedisModule_CreateStringFromCallReply(element), "0");
                 if (RedisModule_CallReplyType(elememt_reply) == REDISMODULE_REPLY_ERROR)
                 {
-                    return RedisModule_ReplyWithError(ctx, "DOCUMENT_KEY field value reset failed");
+                    return RedisModule_ReplyWithError(ctx, "Error occurred when getting value");
                 }
             }
         }
@@ -36,7 +36,7 @@ int reset_document_doty_counts(RedisModuleCtx *ctx, int *year)
         return REDISMODULE_OK;
     }
 
-    return RedisModule_ReplyWithError(ctx, "Doty count reset failed");
+    return RedisModule_ReplyWithError(ctx, "Error occurred when getting value");
 }
 
 int reset(RedisModuleCtx *ctx, int *year)
@@ -44,7 +44,7 @@ int reset(RedisModuleCtx *ctx, int *year)
     RedisModuleCallReply *reply = RedisModule_Call(ctx, "SET", "cl", YEAR_KEY, *year);
     if (RedisModule_CallReplyType(reply) == REDISMODULE_REPLY_ERROR)
     {
-        return RedisModule_ReplyWithError(ctx, "New year reset failed!");
+        return RedisModule_ReplyWithError(ctx, "Error occurred when getting value");
     }
     return reset_document_doty_counts(ctx, year);
 }
@@ -76,7 +76,7 @@ int command(RedisModuleCtx *ctx, RedisModuleString **argv, int argc)
         }
     }
 
-    return RedisModule_ReplyWithError(ctx, "year module failed");
+    return RedisModule_ReplyWithError(ctx, "Error occurred when getting value");
 }
 
 int RedisModule_OnLoad(RedisModuleCtx *ctx)

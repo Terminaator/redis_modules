@@ -22,10 +22,10 @@ int command(RedisModuleCtx *ctx, RedisModuleString **argv, int argc)
     }
     else if (RedisModule_CallReplyType(reply) == REDISMODULE_REPLY_INTEGER && RedisModule_CallReplyInteger(reply) == 0)
     {
-        return RedisModule_ReplyWithError(ctx, "Value not initialized");
+        return RedisModule_ReplyWithError(ctx, "Error occurred when getting value");
     }
 
-    return RedisModule_ReplyWithError(ctx, "Error occured");
+    return RedisModule_ReplyWithError(ctx, "Error occurred when getting value");
 }
 
 int RedisModule_OnLoad(RedisModuleCtx *ctx)

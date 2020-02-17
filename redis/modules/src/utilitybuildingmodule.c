@@ -28,7 +28,7 @@ int command(RedisModuleCtx *ctx, RedisModuleString **argv, int argc)
         }
         else
         {
-            return RedisModule_ReplyWithError(ctx, "Value not initialized");
+            return RedisModule_ReplyWithError(ctx, "Error occurred when getting value");
         }
     }
 

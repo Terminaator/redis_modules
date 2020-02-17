@@ -18,11 +18,7 @@ spec:
           image: {{ .Values.proxy.repository }}
           imagePullPolicy: {{ .Values.proxy.imagePullPolicy }}
           ports:
-            - containerPort: 9999
-            - containerPort: 8080
-          volumeMounts:
-            - name: config-files
-              mountPath: ./app/conf
+            - containerPort: 9998
           env:
           - name: sentinel.ip
             valueFrom:
@@ -64,19 +60,9 @@ spec:
               secretKeyRef:
                 name: {{ .Values.redisConnectionSecret }}
                 key: redis.token
-          readinessProbe:
-            httpGet:
-              path: /readiness
-              port: 8080
-            initialDelaySeconds: 3
-            periodSeconds: 3
+          - name: redis.socket.port
+            value: ":9998"
+          - name: redis.type.normal
+            value: "true"
       imagePullSecrets:
         - name: {{ .Values.imagePullSecrets }}
-      volumes:
-        - name: config-files
-          configMap:
-            name: {{ .Values.proxy.name }}
-            items:
-              - key: init_json
-                path: init.json
-        
