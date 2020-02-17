@@ -1,13 +1,50 @@
 **Redis**
 
-***Proxy***
-* api - mõeldud väljaspoole riigipilve
-* clients - saab vastavalt kliendi käest väärtused, vajalik redise väärtustamiseks
-* init - algväärdustab rakenduse
-* main - proxy käivitamiseks vajalik
-* proxy - redise socket, kontrollib käsklusi, mis tuleb tcp socketi pealt, ainult riigipilvest
-* redis - hoiab redis pool'i
-* sentinel - hoiab ühendust sentineliga, saab vastava redis masteri
+***Ühenduse loomine***
+
+Kasutusel on kaks proxyt (default-proxy, ehrcode-proxy). Mida saab kasutada redise frameworkidega.
+
+**ehrcode-proxy**
+* ehrcode-proxy (mõeldud EHR koodide jagamiseks. Kontrollib pidevalt, kas väärtused on olemas ja vajadusel väärtustab algväärtused.)
+    * api (https://devkluster.ehr.ee/api/redis/v1)
+        * /building
+        * /utilitybuilding
+        * /procedure
+        * /document/{doty}
+        * täpsemalt ""
+    * socket (TCP on mõeldud kasutamiseks riigipilves, väljaspoolt ligi ei saa)
+        *  host - <teenuse_nimi>.<namespace> -> ehrcode-proxy.dev-redis
+        *  port - 9999 on mõeldud ehrcode-proxy jaoks
+    
+**näide ehrcode-proxy teenuse kasutamisest (python)**
+
+*import redis*
+
+*r = redis.Redis(host="ehrcode-proxy.dev-redis", port=9999)*
+
+*result = r.execute_command("PROCEDURE_CODE")*
+
+*print(result)*
+
+*r.close()*
+
+**default-proxy**
+* default-proxy (mõeldud üldiseks kasutamiseks, ei soovita seda kasutada EHR koodide saamiseks)
+    * socket (TCP on mõeldud kasutamiseks riigipilves, väljaspoolt ligi ei saa)
+        *  host - <teenuse_nimi>.<namespace> -> default-proxy.dev-redis
+        *  port - 9998 on mõeldud ehrcode-proxy jaoks
+    
+**näide ehrcode-proxy teenuse kasutamisest (python)**
+
+*import redis*
+
+*r = redis.Redis(host="default-proxy.dev-redis", port=9998)*
+
+*result = r.execute_command("PROCEDURE_CODE")*
+
+*print(result)*
+
+*r.close()*
 
 ***Moodulid***
 * yearmodule:
@@ -43,25 +80,3 @@
     * Võtme välja väärtus - *Rajatise järjekorranumber*
     * Lubatud välja väärtus - *Hetkel oleva rajatise järjekorranumber vahemikus 200000000-300000000*
     * Tagastab - *Tagastab rajatise järjekorranumbri+1*
-
-**Proxy**
-* Socket - Lubatud ainult riigipilve sees, kättesaadav namespace järgi
-    * Mõeldud redise frameworkide jaoks, luuakse tcp ühendus
-    * Lubatud käsklused:
-        * GET
-        * HGETALL
-        * PING
-        * DOCUMENT_CODE
-        * PROCEDURE_CODE
-        * BUILDING_CODE
-        * UTILITY_BUILDING_CODE
-        * EVAL (piiratud, oleneb frameworkist, kui framework ei võimalda kasutada custom commande)
-            * return redis.call('PROCEDURE_CODE')
-            * return redis.call('UTILITY_BUILDING_CODE')
-            * return redis.call('DOCUMENT_CODE', 'doty_id')
-* Api - Avatud väljaspoole (Oracle jaoks)
-    * Token peab olema headeris X-Session-Token
-        * /building - *Tagastab ehitise järjekorranumbri+1*
-        * /utilitybuilding - *Tagastab rajatise järjekorranumbri+1*
-        * /procedure - *Tagastab menetluse järjekorranumbri+1*
-        * /document/{doty} - *Tagastab dokumendi tüübi id järjekorranumbri+1*
