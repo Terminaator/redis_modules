@@ -44,7 +44,6 @@ func (s *Sentinel) write(conn *net.TCPConn) error {
 func (s *Sentinel) checkMaster(ip string) {
 	if len(s.redis) == 0 && s.redis != ip {
 		log.Println("new redis master", ip)
-		ready = true
 		s.redis = ip
 
 		if !NORMAL {

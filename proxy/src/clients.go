@@ -126,6 +126,7 @@ func (c *Clients) start() {
 			c.state = Init
 			c.addValuesIntoRedis(c.getValuesFromClients())
 			c.state = Old
+			ready = true
 		}
 		time.Sleep(1 * time.Second)
 	}
