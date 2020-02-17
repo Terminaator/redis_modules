@@ -12,7 +12,7 @@ spec:
       paths:
       - path: /api/redis/v1
         backend:
-          serviceName: {{ .Values.proxy.name }}
+          serviceName: {{ .Values.ehrProxy.name }}
           servicePort: 8080
   tls:
   - secretName: {{ .Values.ingress.tlsSecret }}
