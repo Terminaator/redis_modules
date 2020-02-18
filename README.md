@@ -4,20 +4,20 @@
 
 **Proxy**
 
-Proxy on mõeldud vahelülina redise ja sentinel vahel. Proxy eesmärk on pidevalt hoida redis masterit, mille ta saab sentineli käest küsides. 
-Suunab edasi liikluse vastava redis masteri vastu. Võimalik on kontrollida nii redise sisendit ja väljundit. 
-Antud konstektis kontrollitakse väljundit ning vajadusel väärdustakse uuesti redis.
-Samuti, kui peaks tekkima uus master, siis uus master algväärtustatakse. Proxy küljes on api, mida saab kasutada väljaspoole riigipilve või kui pole soovi kasutada
+Proxy on mõeldud vahelülina redise ja redist kasutada sooviva kliendi vahel. Proxy eesmärk on pidevalt hoida Redise masteriks kuulutatud instantsi, mille ta saab sentineli käest küsides.
+Proxy suunab edasi liikluse Redis masteri vastu. Proxy võimaldab kontrollida nii redise sisendit ja väljundit.
+Antud konstektis kontrollitakse väljundit ehr koodidega seoses ning vajadusel väärtustatakse uuesti Redise poolt pakutavad EHR koodid.
+Samuti, kui peaks tekkima uus master, siis uus master algväärtustatakse EHR koodidega. Proxy küljes on http api koodide pärimiseks, mida saab kasutada väljaspool riigipilve või kui pole soovi kasutada
 TCP socketit riigipilves.
 Mõeldud on kasutamiseks redise frameworkidega. Samuti töötab tavalise tcp socketina, kuid siis tuleks tutvuda https://redis.io/topics/protocol.
 
 **Sentinel**
 
-Sentineli eesmärk on vajadusel slavest teha uus master, kui vana master peaks maha kukkuma. See tagab teenuse pideva kasutamise.
+Sentineli eesmärk on tagada Rediste instantside kättesaadavus, hoides ühe instantsidest masterina ning hallates synci nende vahel. See tagab teenuse pideva kättesaadavuse.
 
 ***Ühenduse loomine***
 
-Kasutusel on kaks proxyt (default-proxy, ehrcode-proxy). Mida saab kasutada redise frameworkidega.
+Kasutusel on kaks proxyt (default-proxy, ehrcode-proxy). Mida saab kasutada redise frameworkidega. Default-proxy on mõeldud kasutamiseks kõikideks tegevusteks redis-ga, mis ei ole seotud ehr koodidega. Ehr koodide jaoks tuleks kaustada ehrcode-proxy't.
 
 **ehrcode-proxy**
 * ehrcode-proxy (mõeldud EHR koodide jagamiseks. Kontrollib pidevalt, kas väärtused on olemas ja vajadusel väärtustab algväärtused.)
