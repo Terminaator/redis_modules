@@ -19,6 +19,8 @@ Sentineli eesmärk on tagada Rediste instantside kättesaadavus, hoides ühe ins
 
 Kasutusel on kaks proxyt (default-proxy, ehrcode-proxy). Mida saab kasutada redise frameworkidega. Default-proxy on mõeldud kasutamiseks kõikideks tegevusteks redis-ga, mis ei ole seotud ehr koodidega. Ehr koodide jaoks tuleks kaustada ehrcode-proxy't.
 
+Rancher'is secret nimega "ehr-redis-proxy".
+
 **ehrcode-proxy**
 * ehrcode-proxy (mõeldud EHR koodide jagamiseks. Kontrollib pidevalt, kas väärtused on olemas ja vajadusel väärtustab algväärtused.)
     * api (https://devkluster.ehr.ee/api/redis/v1)
@@ -30,6 +32,9 @@ Kasutusel on kaks proxyt (default-proxy, ehrcode-proxy). Mida saab kasutada redi
     * socket (TCP on mõeldud kasutamiseks riigipilves, väljaspoolt ligi ei saa)
         *  host - <teenuse_nimi>.<namespace> -> ehrcode-proxy.dev-redis
         *  port - 9999 on mõeldud ehrcode-proxy jaoks
+    * secret (ehr-redis-proxy)
+        * EHRCODE_HOST proxy teenuse ip
+        * EHRCODE_PORT proxy teenuse port
     
 **näide ehrcode-proxy teenuse kasutamisest (python)**
 
@@ -48,6 +53,9 @@ Kasutusel on kaks proxyt (default-proxy, ehrcode-proxy). Mida saab kasutada redi
     * socket (TCP on mõeldud kasutamiseks riigipilves, väljaspoolt ligi ei saa)
         *  host - <teenuse_nimi>.<namespace> -> default-proxy.dev-redis
         *  port - 9998 on mõeldud ehrcode-proxy jaoks
+    * secret (ehr-redis-proxy)
+        * DEFAULT_HOST proxy teenuse ip
+        * DEFAULT_PORT proxy teenuse port  
     
 **näide default-proxy teenuse kasutamisest (python)**
 
