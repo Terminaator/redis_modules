@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	quit []byte = []byte("*1\r\n$4\r\nquit\r\n")
+	quit    []byte = []byte("*1\r\n$4\r\nquit\r\n")
+	timeout []byte = []byte("-Timeout\r\n")
 )
 
 type RedisState int
@@ -16,6 +17,7 @@ const (
 	Connect RedisState = iota
 	Open
 	Close
+	Timeout
 )
 
 type Redis struct {
@@ -25,17 +27,19 @@ type Redis struct {
 
 func (r *Redis) close() {
 	r.state = Close
-	r.conn.Write(quit)
+	if r.conn != nil {
+		r.conn.Write(quit)
+	}
 }
 
-func (r *Redis) read(in []byte, out []byte) {
-	if _, err := r.conn.Read(out); err != nil {
+func (r *Redis) read(in []byte, out *[]byte) {
+	if _, err := r.conn.Read(*out); err != nil {
 		r.state = Connect
 		r.do(in, out)
 	}
 }
 
-func (r *Redis) write(in []byte, out []byte) {
+func (r *Redis) write(in []byte, out *[]byte) {
 	if _, err := r.conn.Write(in); err == nil {
 		r.read(in, out)
 	} else {
@@ -44,11 +48,11 @@ func (r *Redis) write(in []byte, out []byte) {
 	}
 }
 
-func (r *Redis) clientsDo(in []byte, out []byte) {
+func (r *Redis) clientsDo(in []byte, out *[]byte) {
 	r.do(in, out)
 }
 
-func (r *Redis) normalDo(in []byte, out []byte) {
+func (r *Redis) normalDo(in []byte, out *[]byte) {
 	if !NORMAL {
 		if CLIENTS.state != Old {
 			for {
@@ -62,18 +66,28 @@ func (r *Redis) normalDo(in []byte, out []byte) {
 	r.do(in, out)
 }
 
-func (r *Redis) do(in []byte, out []byte) {
+func (r *Redis) do(in []byte, out *[]byte) {
 	if r.state == Connect {
-		r.connect()
-		r.do(in, out)
+		r.connect(0)
+		if r.state == Timeout {
+			*out = timeout
+		} else {
+			r.do(in, out)
+		}
 	} else if r.state == Open {
 		r.write(in, out)
 	}
 }
 
-func (r *Redis) connect() {
+func (r *Redis) connect(timeout int) {
 	if r.state != Close {
-		addr, _ := net.ResolveTCPAddr("tcp", SENTINEL.redis)
+
+		if timeout == 10 {
+			r.state = Timeout
+			return
+		}
+
+		addr, _ := net.ResolveTCPAddr("tcp", SENTINEL.redis_ip)
 		c, err := net.DialTCP("tcp", nil, addr)
 
 		if err == nil {
@@ -82,7 +96,7 @@ func (r *Redis) connect() {
 		} else {
 			log.Println("trying to make new redis session")
 			time.Sleep(1 * time.Second)
-			r.connect()
+			r.connect(timeout + 1)
 		}
 	}
 }

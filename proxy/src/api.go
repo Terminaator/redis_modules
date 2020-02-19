@@ -33,6 +33,7 @@ type Respond struct {
 
 func (a *Auth) authentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.URL.Path, "req")
 		token := r.Header.Get("X-Session-Token")
 		if token == a.Token || "/readiness" == r.URL.Path {
 			next.ServeHTTP(w, r)
@@ -115,7 +116,7 @@ func doRedis(command []byte) (string, error) {
 	redis := Redis{}
 	out := make([]byte, 128)
 
-	redis.normalDo(command, out)
+	redis.normalDo(command, &out)
 	redis.close()
 
 	return convert(string(bytes.Trim(out, "\x00")))

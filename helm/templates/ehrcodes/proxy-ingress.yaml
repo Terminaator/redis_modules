@@ -10,7 +10,7 @@ spec:
   - host: {{ .Values.ingress.host }}
     http:
       paths:
-      - path: /api/redis/v1
+      - path: /api/redis/v1/
         backend:
           serviceName: {{ .Values.ehrProxy.name }}
           servicePort: 8080

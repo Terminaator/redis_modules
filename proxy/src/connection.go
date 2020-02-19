@@ -38,7 +38,7 @@ func (c *Connection) outCheckPipe(out []byte) {
 func (c *Connection) redisPipe(message []byte) {
 	log.Println("message from", c.ip, message)
 	out := make([]byte, 2048)
-	c.redis.normalDo(message, out)
+	c.redis.normalDo(message, &out)
 
 	c.outCheckPipe(bytes.Trim(out, "\x00"))
 }

@@ -106,17 +106,18 @@ func (c *Clients) addValuesIntoRedis(m *map[string]interface{}) {
 			for k2, v2 := range v.(map[string]interface{}) {
 				out := make([]byte, 128)
 				redis.clientsDo([]byte(
-					fmt.Sprintf("*4\r\n$4\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%d\r\n", "HSET", len(k), k, len(k2), k2, len(strconv.Itoa(v2.(int))), v2.(int))), out)
+					fmt.Sprintf("*4\r\n$4\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%d\r\n", "HSET", len(k), k, len(k2), k2, len(strconv.Itoa(v2.(int))), v2.(int))), &out)
 				log.Println("HSET", len(k), k, len(k2), k2, len(strconv.Itoa(v2.(int))), v2.(int))
 
 			}
 		} else {
 			out := make([]byte, 128)
 			redis.clientsDo([]byte(
-				fmt.Sprintf("*3\r\n$3\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%d\r\n", "SET", len(k), k, len(strconv.Itoa(v.(int))), v.(int))), out)
+				fmt.Sprintf("*3\r\n$3\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%d\r\n", "SET", len(k), k, len(strconv.Itoa(v.(int))), v.(int))), &out)
 			log.Println("SET", len(k), k, len(strconv.Itoa(v.(int))), v.(int))
 		}
 	}
+	redis.close()
 }
 
 func (c *Clients) start() {

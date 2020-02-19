@@ -22,13 +22,13 @@ var (
 
 func main() {
 
-	list, token, port, redis, name := addInitValues()
+	list, token, port, sentinel, name := addInitValues()
 
 	log.Println("starting proxy:", port)
 
-	SENTINEL = Sentinel{ip: redis, name: name}
+	SENTINEL = Sentinel{redis_name: name}
 
-	go SENTINEL.start()
+	go SENTINEL.start(sentinel)
 
 	if !NORMAL {
 		CLIENTS = Clients{state: Start, clients: list}
