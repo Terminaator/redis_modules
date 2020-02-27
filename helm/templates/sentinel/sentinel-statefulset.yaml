@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
       - name: {{ .Values.sentinel.name }}
-        image: {{ .Values.sentinel.repository }}
-        imagePullPolicy: {{ .Values.sentinel.imagePullPolicy }}
+        image: "{{ .Values.repository }}:{{ .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["bash", "-c", "source /redis-data/sentinel.sh" ]
         ports:
           - containerPort: 26379

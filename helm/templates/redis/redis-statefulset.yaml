@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
       - name: {{ .Values.redis.name }}
-        image: {{ .Values.redis.repository }}
-        imagePullPolicy: {{ .Values.redis.imagePullPolicy }}
+        image: "{{ .Values.repository }}:{{ .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["bash", "-c", "source /redis-data/redis.sh" ]
         ports:
           - containerPort: 6379

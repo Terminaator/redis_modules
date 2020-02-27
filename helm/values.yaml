@@ -3,17 +3,16 @@ imagePullSecrets: registry-gitlab-key
 sentinel:
   name: sentinel
   replicas: 3
-  repository: __CI_REGISTRY_REDIS_IMAGE__
-  imagePullPolicy: Always
 
 redis:
   name: redis
   replicas: 3
-  repository: __CI_REGISTRY_REDIS_IMAGE__
-  imagePullPolicy: Always
 
 ingress:
   host: devkluster.ehr.ee
   tlsSecret: redis-dev-cert
+
+repository: __CI_REGISTRY_IMAGE__
+imagePullPolicy: Always
 
 redisConnectionSecret: redis-connection
