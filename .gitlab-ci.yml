@@ -2,7 +2,7 @@ stages:
   - sonarqube
   - build
   - release_helm
-#  - deploy_k8s_test
+  #  - deploy_k8s_test
   - clean
 
 include:
@@ -11,49 +11,22 @@ include:
     file: ".gitlab-ci-docker-init.yml"
 
   # Sonarqube test
+  # org.sonar.java.AnalysisException: Please provide compiled classes of your project with sonar.java.binaries property
+  #  - project: "ehr/dev-ops/gitlab-cis"
+  #    file: ".gitlab-ci-test-sonarqube.yml"
+
+  # Build docker release container
   - project: "ehr/dev-ops/gitlab-cis"
-    file: ".gitlab-ci-test-sonarqube.yml"
+    file: ".gitlab-ci-docker-build.yml"
 
-variables:
-  DEV_PROXY_IMAGE: $CI_REGISTRY_IMAGE/proxy:$CI_COMMIT_REF_NAME
-  DEV_REDIS_SENTINEL_IMAGE: $CI_REGISTRY_IMAGE/redis:$CI_COMMIT_REF_NAME
+  # Release Helm.
+  - project: "ehr/dev-ops/gitlab-cis"
+    file: ".gitlab-ci-k8s-helm.yml"
 
-build:
-  stage: build
-  only:
-    - /^version-.*$/
-  script:
-    - echo Building version $GIT_SEMVER
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull $CI_REGISTRY_IMAGE:latest_proxy || true
-    - docker pull $CI_REGISTRY_IMAGE:latest_redis || true
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest_proxy --build-arg GIT_SEMVER=${GIT_SEMVER} --tag $DEV_PROXY_IMAGE --tag $CI_REGISTRY_IMAGE:latest_proxy ./proxy
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest_redis --build-arg GIT_SEMVER=${GIT_SEMVER} --tag $DEV_REDIS_SENTINEL_IMAGE --tag $CI_REGISTRY_IMAGE:latest_redis ./redis
-    - docker push $DEV_PROXY_IMAGE
-    - docker push $CI_REGISTRY_IMAGE:latest_proxy
-    - docker push $DEV_REDIS_SENTINEL_IMAGE
-    - docker push $CI_REGISTRY_IMAGE:latest_redis
+  # deploy to k8s test
+  #  - project: "ehr-test-group/dev-ops/gitlab-cis"
+  #    file: ".gitlab-ci-k8s-test-deploy.yml"
 
-helm:
-  stage: release_helm
-  image:
-    name: dtzar/helm-kubectl:3.0.1
-  only:
-    - /^version-.*$/
-  script:
-    # Extract version (numbers only) from commit tag
-    - SEMVER=`echo $CI_COMMIT_REF_NAME | sed 's/.*-\(.*\)/\1/'`
-    # Set install image in values file
-    - sed -i "s~__CI_REGISTRY_REDIS_IMAGE__~${DEV_REDIS_SENTINEL_IMAGE}~" helm/values.yaml
-    - sed -i "s~__CI_REGISTRY_PROXY_IMAGE__~${DEV_PROXY_IMAGE}~" helm/values.yaml
-    - sed -i "s~__APPVERSION__~${CI_COMMIT_REF_NAME}~" helm/Chart.yaml
-    # Debugging aid to show how variables got replaced...
-    - echo "---------------------------------"
-    - cat helm/Chart.yaml
-    - echo "---------------------------------"
-    - cat helm/values.yaml
-    - echo "---------------------------------"
-    # Build chart and upload to our ChartMuseum
-    - helm plugin install https://github.com/chartmuseum/helm-push
-    - helm repo add chartmuseum $CHM_URL --username $CHM_USER --password $CHM_PASS
-    - helm push ./helm --version=$SEMVER chartmuseum
+  # Clean gitlab docker registry keep only 5
+  - project: "ehr/dev-ops/gitlab-cis"
+    file: ".gitlab-ci-registry-cleaner.yml"

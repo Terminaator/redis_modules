@@ -12,18 +12,6 @@ redis:
   repository: __CI_REGISTRY_REDIS_IMAGE__
   imagePullPolicy: Always
 
-ehrProxy:
-  name: ehrcode-proxy
-  replicas: 1
-  repository: __CI_REGISTRY_PROXY_IMAGE__
-  imagePullPolicy: Always
-
-proxy:
-  name: default-proxy
-  replicas: 1
-  repository: __CI_REGISTRY_PROXY_IMAGE__
-  imagePullPolicy: Always
-
 ingress:
   host: devkluster.ehr.ee
   tlsSecret: redis-dev-cert
