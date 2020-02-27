@@ -35,8 +35,8 @@ spec:
           timeoutSeconds: 5
       initContainers:
       - name: copy
-        image: {{ .Values.sentinel.repository }}
-        imagePullPolicy: {{ .Values.sentinel.imagePullPolicy }}
+        image: "{{ .Values.repository }}:{{ .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["bash", "-c", "cp -a /copy/. /redis-data/"]
         volumeMounts:
         - mountPath: /copy
