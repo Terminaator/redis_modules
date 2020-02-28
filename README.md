@@ -1,19 +1,16 @@
 **Redis**
 
+***Redise dokumentatsioon***
+https://redis.io/documentation
+
+***Sentineli dokumentatsioon***
+https://redis.io/topics/sentinel
+
 ***Selgitus***
 
 Selles projektis asub sentineli, redise conf ja moodulid.
 
 Proxy asub https://git.mkm.ee/ehr/ehr-k8s-pipeline/redis-sentinel-proxy.
-
-**Proxy**
-
-Proxy on mõeldud vahelülina redise ja redist kasutada sooviva kliendi vahel. Proxy eesmärk on pidevalt hoida Redise masteriks kuulutatud instantsi, mille ta saab sentineli käest küsides.
-Proxy suunab edasi liikluse Redis masteri vastu. Proxy võimaldab kontrollida nii redise sisendit ja väljundit.
-Antud konstektis kontrollitakse väljundit ehr koodidega seoses ning vajadusel väärtustatakse uuesti Redise poolt pakutavad EHR koodid.
-Samuti, kui peaks tekkima uus master, siis uus master algväärtustatakse EHR koodidega. Proxy küljes on http api koodide pärimiseks, mida saab kasutada väljaspool riigipilve või kui pole soovi kasutada
-TCP socketit riigipilves.
-Mõeldud on kasutamiseks redise frameworkidega. Samuti töötab tavalise tcp socketina, kuid siis tuleks tutvuda https://redis.io/topics/protocol.
 
 **Sentinel**
 
