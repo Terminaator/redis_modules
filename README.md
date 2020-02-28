@@ -2,7 +2,9 @@
 
 ***Selgitus***
 
-Selles projektis asub ainult redise, sentinele conf failid ja redise moodulid
+Selles projektis asub sentineli, redise conf ja moodulid.
+
+Proxy asub https://git.mkm.ee/ehr/ehr-k8s-pipeline/redis-sentinel-proxy.
 
 **Proxy**
 
