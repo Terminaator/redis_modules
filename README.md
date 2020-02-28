@@ -2,6 +2,8 @@
 
 ***Selgitus***
 
+Selles projektis asub ainult redise, sentinele conf failid ja redise moodulid
+
 **Proxy**
 
 Proxy on mõeldud vahelülina redise ja redist kasutada sooviva kliendi vahel. Proxy eesmärk on pidevalt hoida Redise masteriks kuulutatud instantsi, mille ta saab sentineli käest küsides.
