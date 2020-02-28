@@ -17,60 +17,7 @@ Sentineli eesmärk on tagada Rediste instantside kättesaadavus, hoides ühe ins
 
 ***Ühenduse loomine***
 
-Kasutusel on kaks proxyt (default-proxy, ehrcode-proxy). Mida saab kasutada redise frameworkidega. Default-proxy on mõeldud kasutamiseks kõikideks tegevusteks redis-ga, mis ei ole seotud ehr koodidega. Ehr koodide jaoks tuleks kaustada ehrcode-proxy't.
-
-**Rancher'is secret nimega "ehr-redis-proxy".**
-* ehrcode-proxy teenuse ip on secretis EHRCODE_HOST ja port on EHRCODE_PORT
-* default-proxy teenuse ip on secretis DEFAULT_HOST ja port on DEFAULT_PORT
-
-
-**ehrcode-proxy**
-* ehrcode-proxy (mõeldud EHR koodide jagamiseks. Kontrollib pidevalt, kas väärtused on olemas ja vajadusel väärtustab algväärtused.)
-    * api (https://devkluster.ehr.ee/api/redis/v1)
-        * /building
-        * /utilitybuilding
-        * /procedure
-        * /document/{doty}
-        * täpsemalt [https://swaggerui.mkm.ee/](https://swaggerui.mkm.ee/)
-    * socket (TCP on mõeldud kasutamiseks riigipilves, väljaspoolt ligi ei saa)
-        *  host - <teenuse_nimi>.<namespace> -> ehrcode-proxy.dev-redis
-        *  port - 9999 on mõeldud ehrcode-proxy jaoks
-    * secret (ehr-redis-proxy)
-        * EHRCODE_HOST proxy teenuse ip
-        * EHRCODE_PORT proxy teenuse port
-    
-**näide ehrcode-proxy teenuse kasutamisest (python)**
-
-*import redis*
-
-*r = redis.Redis(host="ehrcode-proxy.dev-redis", port=9999)*
-
-*result = r.execute_command("PROCEDURE_CODE")*
-
-*print(result)*
-
-*r.close()*
-
-**default-proxy**
-* default-proxy (mõeldud üldiseks kasutamiseks, ei soovita seda kasutada EHR koodide saamiseks)
-    * socket (TCP on mõeldud kasutamiseks riigipilves, väljaspoolt ligi ei saa)
-        *  host - <teenuse_nimi>.<namespace> -> default-proxy.dev-redis
-        *  port - 9998 on mõeldud ehrcode-proxy jaoks
-    * secret (ehr-redis-proxy)
-        * DEFAULT_HOST proxy teenuse ip
-        * DEFAULT_PORT proxy teenuse port  
-    
-**näide default-proxy teenuse kasutamisest (python)**
-
-*import redis*
-
-*r = redis.Redis(host="default-proxy.dev-redis", port=9998)*
-
-*result = r.execute_command("PROCEDURE_CODE")*
-
-*print(result)*
-
-*r.close()*
+Ühenduse loomine asub siin https://git.mkm.ee/ehr/ehr-k8s-pipeline/redis-proxy
 
 ***Moodulid***
 * yearmodule:
