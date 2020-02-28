@@ -1,20 +1,21 @@
 **Redis**
 
-***Redise dokumentatsioon***
-https://redis.io/documentation
-
-***Sentineli dokumentatsioon***
-https://redis.io/topics/sentinel
-
 ***Selgitus***
 
 Selles projektis asub sentineli, redise conf ja moodulid.
 
 Proxy asub https://git.mkm.ee/ehr/ehr-k8s-pipeline/redis-sentinel-proxy.
 
+**Redis**
+
+Redise dokumentatsioon https://redis.io/documentation
+
 **Sentinel**
 
 Sentineli eesmärk on tagada Rediste instantside kättesaadavus, hoides ühe instantsidest masterina ning hallates synci nende vahel. See tagab teenuse pideva kättesaadavuse.
+
+Sentineli dokumentatsioon https://redis.io/topics/sentinel
+
 
 ***Ühenduse loomine***
 
