@@ -18,6 +18,20 @@ data:
     timeout 0
     tcp-keepalive 300
     tcp-backlog 512
+
+    #disabled
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    rename-command KEYS ""
+    rename-command PEXPIRE ""
+    rename-command DEL ""
+    rename-command SHUTDOWN ""
+    rename-command BGREWRITEAOF ""
+    rename-command BGSAVE ""
+    rename-command SAVE ""
+    rename-command SPOP ""
+    rename-command SREM ""
+    rename-command RENAME ""
   redis_slave_conf: |
     bind 0.0.0.0
     port 6379
@@ -35,7 +49,20 @@ data:
     timeout 0
     tcp-keepalive 300
     tcp-backlog 512
-    replica-serve-stale-data yes
+
+    #disabled
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    rename-command KEYS ""
+    rename-command PEXPIRE ""
+    rename-command DEL ""
+    rename-command SHUTDOWN ""
+    rename-command BGREWRITEAOF ""
+    rename-command BGSAVE ""
+    rename-command SAVE ""
+    rename-command SPOP ""
+    rename-command SREM ""
+    rename-command RENAME ""
   redis_sh: |
     #!/bin/bash
     while true;

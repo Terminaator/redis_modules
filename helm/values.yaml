@@ -6,7 +6,7 @@ sentinel:
 
 redis:
   name: redis
-  replicas: 3
+  replicas: 1
 
 ingress:
   host: devkluster.ehr.ee

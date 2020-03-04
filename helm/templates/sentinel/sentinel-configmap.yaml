@@ -12,8 +12,9 @@ data:
     redis-sentinel /redis-data/sentinel.conf
   sentinel_conf: |
     bind 0.0.0.0
+    protected-mode no
     port 26379
     sentinel monitor redis redis 6379 2
     sentinel parallel-syncs redis 1
     sentinel down-after-milliseconds redis 5000
-    sentinel failover-timeout redis 60000
+    sentinel failover-timeout redis 10000
