@@ -1,4 +1,6 @@
 #include "ehrcodemodule.h"
+#include "init.h"
+
 
 int command(RedisModuleCtx *ctx, RedisModuleString **argv, int argc)
 {
@@ -12,28 +14,22 @@ int command(RedisModuleCtx *ctx, RedisModuleString **argv, int argc)
 
     RedisModuleCallReply *reply = RedisModule_Call(ctx, "HEXISTS", "cc", EHR_CODE_SET_KEY, EHR_CODE_SET_BUILDING_FIELD);
 
-    if (RedisModule_CallReplyType(reply) == REDISMODULE_REPLY_INTEGER)
-    {
-        if (RedisModule_CallReplyInteger(reply) == 1)
-        {
-            reply = RedisModule_Call(ctx, "HINCRBY", "ccl", EHR_CODE_SET_KEY, EHR_CODE_SET_BUILDING_FIELD, 1);
-            if (RedisModule_CallReplyType(reply) == REDISMODULE_REPLY_INTEGER)
-            {
-                long long building_code = RedisModule_CallReplyInteger(reply);
-                if (BUILDING_MIN_VALUE <= building_code && building_code < BUILDING_MAX_VALUE)
-                {
-                    RedisModule_ReplyWithLongLong(ctx, building_code);
-                    return REDISMODULE_OK;
-                }
-            }
+    if (RedisModule_CallReplyType(reply) == REDISMODULE_REPLY_INTEGER) {
+        reply = RedisModule_Call(ctx, "HINCRBY", "ccl", EHR_CODE_SET_KEY, EHR_CODE_SET_BUILDING_FIELD, 1);
+        if (RedisModule_CallReplyType(reply) == REDISMODULE_REPLY_INTEGER) {
+            long long building_code = RedisModule_CallReplyInteger(reply);
+            if (BUILDING_MIN_VALUE <= building_code && building_code < BUILDING_MAX_VALUE) {
+                //getBuildingCode();
+                const char* a = getBuildingCode();
+                RedisModule_ReplyWithStringBuffer(ctx, a, strlen(a));
+                return REDISMODULE_OK;
+            } 
+        } else {
+            
         }
-        else
-        {
-            return RedisModule_ReplyWithError(ctx, "Error occurred when getting value");
-        }
-    }
+    } 
 
-    return RedisModule_ReplyWithError(ctx, "Error occurred when getting value");
+    return RedisModule_ReplyWithError(ctx, EXIST_ERROR);
 }
 
 int RedisModule_OnLoad(RedisModuleCtx *ctx)

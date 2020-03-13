@@ -38,6 +38,8 @@
 #define DOCUMENT_MODULE_VERSION 1
 #define DOCUMENT_MODULE_COMMAND "DOCUMENT_CODE"
 
+#define EXIST_ERROR "Value doesn't not exist!"
+
 int command(RedisModuleCtx *, RedisModuleString **, int);
 
 #endif
